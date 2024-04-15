@@ -1,0 +1,44 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PreparationDownload_VB"
+        xmlns:VisualBasic="clr-namespace:Microsoft.VisualBasic;assembly=Microsoft.VisualBasic.Core" x:Class="MainWindow"
+        mc:Ignorable="d"
+        Title="Preparation Downloader" Height="350" Width="500">
+    <Grid>
+        <Label Content="First Name" HorizontalAlignment="Left" Margin="135,11,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="inp_FirstName" HorizontalAlignment="Left" Margin="250,16,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="FirstLastChanged"/>
+        <Label Content="Last Name" HorizontalAlignment="Left" Margin="135,41,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="inp_LastName" HorizontalAlignment="Left" Margin="250,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="FirstLastChanged"/>
+        <Label Content="Username" HorizontalAlignment="Left" Margin="138,71,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="inp_Username" HorizontalAlignment="Left" Margin="250,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="UsernameChanged"/>
+        <Label Content="Site" HorizontalAlignment="Left" Margin="171,101,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="sel_Site" HorizontalAlignment="Left" Margin="250,101,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
+            <ComboBoxItem Content="Chess.com"/>
+            <ComboBoxItem Content="Lichess"/>
+            <ComboBoxItem Content="All"/>
+        </ComboBox>
+        <Label Content="Time Control" HorizontalAlignment="Left" Margin="123,129,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="sel_TimeControl" HorizontalAlignment="Left" Margin="250,131,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
+            <ComboBoxItem Content="Bullet"/>
+            <ComboBoxItem Content="Blitz"/>
+            <ComboBoxItem Content="Rapid"/>
+            <ComboBoxItem Content="Classical"/>
+            <ComboBoxItem Content="Correspondence"/>
+            <ComboBoxItem Content="All"/>
+        </ComboBox>
+        <Label Content="Color" HorizontalAlignment="Left" Margin="164,161,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="sel_Color" HorizontalAlignment="Left" Margin="250,161,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
+            <ComboBoxItem Content="White"/>
+            <ComboBoxItem Content="Black"/>
+            <ComboBoxItem Content="Both"/>
+        </ComboBox>
+        <Label Content="Start Date" HorizontalAlignment="Left" Margin="140,191,0,0" VerticalAlignment="Top"/>
+        <DatePicker x:Name="inp_StartDate" HorizontalAlignment="Left" Margin="250,191,0,0" VerticalAlignment="Top" SelectedDateFormat="Short" Width="120"/>
+        <Label Content="End Date" HorizontalAlignment="Left" Margin="144,221,0,0" VerticalAlignment="Top"/>
+        <DatePicker x:Name="inp_EndDate" HorizontalAlignment="Left" Margin="250,221,0,0" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="cmd_Run" Content="Download" HorizontalAlignment="Center" Margin="0,270,0,0" VerticalAlignment="Top"/>
+    </Grid>
+</Window>
