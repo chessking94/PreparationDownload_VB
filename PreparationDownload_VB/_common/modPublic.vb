@@ -3,28 +3,23 @@ Imports System.Text
 
 Module modPublic
     Public Sub RunProcess()
-        Dim objl_Classes As New List(Of clsBase)
-        Dim IsThreaded As Boolean = False
-
+        Dim objl_process As New clsProcessing
         If MainWindow.Site = "All" OrElse MainWindow.Site = "Chess.com" Then
-            Dim objl_process As New clsProcessing With {.CDC = New clsCDC}
-            objl_Classes.Add(objl_process)
+            objl_process.CDC = New clsCDC
         End If
 
         If MainWindow.Site = "All" OrElse MainWindow.Site = "Lichess" Then
-            Dim objl_process As New clsProcessing With {.Lichess = New clsLichess}
-            objl_Classes.Add(objl_process)
+            objl_process.Lichess = New clsLichess
         End If
 
-        For Each obj_class In objl_Classes
-            If IsThreaded Then
-                'TODO: This needs some work, want it to download all files simultaneously but that isn't what it does currently
-                obj_class.StartThreaded()
-                obj_class.WaitForEnd(True)
-            Else
-                obj_class.StartNonThreaded()
-            End If
-        Next
+        Dim IsThreaded As Boolean = False
+        If IsThreaded Then
+            'TODO: This needs some work, want it to download all files simultaneously but that isn't what it does currently
+            objl_process.StartThreaded()
+            objl_process.WaitForEnd(True)
+        Else
+            objl_process.StartNonThreaded()
+        End If
     End Sub
 
     Public Sub RunCommand(command As String, Optional workingDir As String = Nothing, Optional arguments As String = Nothing, Optional permanent As Boolean = False, Optional waitForEnd As Boolean = True)
