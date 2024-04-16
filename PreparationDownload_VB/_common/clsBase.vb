@@ -21,13 +21,7 @@ Public MustInherit Class clsBase
 
 #Region "Private"
     Private Sub Go() Handles objm_Worker.DoWork
-        Dim StartDate As Date = Date.Now
-
-        Try
-            Go_Child()
-        Catch ex As Exception
-            Debug.Print(ex.Message)
-        End Try
+        Go_Child()
     End Sub
 #End Region
 

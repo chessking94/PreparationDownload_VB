@@ -26,15 +26,14 @@ Public Class clsLichess : Inherits clsProcessing
                     File.WriteAllBytes(filePath, contentBytes)
                     objl_files.Add(filePath)
                 Else
-                    'TODO: Adjust this from popping a message box to adding to an error list, then pop a single error list at the end of all processing
-                    MessageBox.Show("Failed to download file. Status code: " & response.StatusCode, "Lichess download error", MessageBoxButton.OK, MessageBoxImage.Error)
+                    MainWindow.ErrorList = AppendText(MainWindow.ErrorList, $"Lichess game download API error: {response.StatusCode}")
                 End If
             End Using
 
             'Lichess games do not have a populated TimeControl tag for Correspondence games, add a default
             ReplaceTextInFile(filePath, "[TimeControl ""-""]", "[TimeControl ""1/86400""]")
 
-            If u.LastName <> "" Then  'TODO: Add a checkbox parameter in MainWindow to skip this if desired
+            If MainWindow.ReplaceUsername AndAlso u.LastName <> "" Then
                 ReplaceTextInFile(filePath, $"""{u.Username}""", $"""{u.LastName}, {u.FirstName}""")  'replace "Username" with "Last, First"
             End If
         Next

@@ -26,8 +26,7 @@ Public Class clsCDC : Inherits clsProcessing
                     Dim jsonData As JObject = JObject.Parse(responseContent)
                     archiveArray = DirectCast(jsonData("archives"), JArray)
                 Else
-                    'TODO: Adjust this from popping a message box to adding to an error list, then pop a single error list at the end of all processing
-                    MessageBox.Show("Failed to obtain archive list. Status code: " & response.StatusCode, "Chess.com API error", MessageBoxButton.OK, MessageBoxImage.Error)
+                    MainWindow.ErrorList = AppendText(MainWindow.ErrorList, $"Chess.com archives API error: {response.StatusCode}")
                 End If
             End Using
 
@@ -48,10 +47,12 @@ Public Class clsCDC : Inherits clsProcessing
                             Dim contentBytes = response.Content.ReadAsByteArrayAsync().Result
                             File.WriteAllBytes(filePath, contentBytes)
                             objl_files.Add(filePath)
+                        Else
+                            MainWindow.ErrorList = AppendText(MainWindow.ErrorList, $"Chess.com game download API error: {response.StatusCode}")
                         End If
                     End Using
 
-                    If u.LastName <> "" Then  'TODO: Add a checkbox parameter in MainWindow to skip this if desired
+                    If MainWindow.ReplaceUsername AndAlso u.LastName <> "" Then
                         ReplaceTextInFile(filePath, $"""{u.Username}""", $"""{u.LastName}, {u.FirstName}""")  'replace "Username" with "Last, First"
                     End If
                 Next

@@ -28,7 +28,11 @@ Module modPublic
         Dim pi As ProcessStartInfo = New ProcessStartInfo()
         pi.CreateNoWindow = True
 
-        If Not String.IsNullOrWhiteSpace(workingDir) Then pi.WorkingDirectory = workingDir  'TODO: validate directory exists
+        If Not Directory.Exists(workingDir) Then
+            Throw New DirectoryNotFoundException
+        End If
+
+        If Not String.IsNullOrWhiteSpace(workingDir) Then pi.WorkingDirectory = workingDir
         pi.Arguments = " " + If(permanent = True, "/K", "/C") + " " + command
         If Not String.IsNullOrWhiteSpace(arguments) Then
             pi.Arguments += " "
@@ -67,16 +71,14 @@ Module modPublic
         End Using
     End Sub
 
-    Public Function AppendText(str_Input, str_Append) As String
-        Dim delim As String = vbCrLf
-
+    Public Function AppendText(str_Input As String, str_Append As String, Optional delimiter As String = vbCrLf) As String
         If str_Input = "" OrElse str_Input Is Nothing Then
             Return str_Append
         Else
             If str_Append = "" Then
                 Return str_Input
             Else
-                str_Input += delim
+                str_Input += delimiter
                 str_Input += str_Append
                 Return str_Input
             End If

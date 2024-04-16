@@ -9,6 +9,10 @@
     Public Shared Color As String
     Public Shared StartDate As Date
     Public Shared EndDate As Date
+    Public Shared ReplaceUsername As Boolean = True
+    Public Shared WriteLog As Boolean = False
+
+    Public Shared ErrorList As String
 
     Private Sub FirstLastChanged() Handles inp_FirstName.SelectionChanged, inp_LastName.SelectionChanged
         If inp_FirstName.Text <> "" OrElse inp_LastName.Text <> "" Then
@@ -28,19 +32,37 @@
         End If
     End Sub
 
-    Private Sub Run() Handles cmd_Run.Click
-        Try
-            'TODO: check if pgn-extract is installed, if not throw an exception
+    Private Sub ReplaceUsername_Checked(sender As Object, e As RoutedEventArgs)
+        If chk_ReplaceUsername.IsChecked Then
+            ReplaceUsername = True
+        Else
+            ReplaceUsername = False
+        End If
+    End Sub
 
-            Enabler(False)
+    Private Sub WriteLog_Checked(sender As Object, e As RoutedEventArgs)
+        If chk_WriteLog.IsChecked Then
+            WriteLog = True
+        Else
+            WriteLog = False
+        End If
+    End Sub
+
+    Private Sub Run() Handles cmd_Run.Click
+        pgnExtractExists()
+        If ErrorList <> "" Then
+            MessageBox.Show(ErrorList, "Process Failed - Missing Dependency", MessageBoxButton.OK, MessageBoxImage.Stop)
+        Else
+            Try
+                Enabler(False)
 
 #If DEBUG Then
-            FirstName = "Ethan"
-            LastName = "Hunt"
-            Username = ""
-            Site = "All"
-            TimeControl = "All"
-            Color = "Both"
+                FirstName = "Ethan"
+                LastName = "Hunt"
+                Username = ""
+                Site = "All"
+                TimeControl = "All"
+                Color = "Both"
 #Else
             'validate inputs
             ValidateName()
@@ -50,31 +72,62 @@
             ValidateDates()
 #End If
 
-            If Not IsValidated Then
-                Throw New Exception("Validation failed:" & vbCrLf & vbCrLf & ValidationFailReasons)
-            End If
+                If Not IsValidated Then
+                    Throw New Exception("Validation failed:" & vbCrLf & vbCrLf & ValidationFailReasons)
+                End If
 
-            'TODO: Add a progress bar
+                'TODO: Add a progress bar
 
-            RunProcess()
-            Try
-                Process.Start("explorer.exe", clsBase.rootDir)
+                RunProcess()
+                Try
+                    Process.Start("explorer.exe", clsBase.rootDir)
+                Catch ex As Exception
+                    ErrorList = AppendText(ErrorList, $"Unable to open directory {clsBase.rootDir}, file(s) can be found at that location")
+                End Try
+
+                If ErrorList <> "" Then
+                    MessageBox.Show(ErrorList, "Process Complete - Errors", MessageBoxButton.OK, MessageBoxImage.Warning)
+                End If
+
+                Enabler(True)
+
             Catch ex As Exception
-                MessageBox.Show($"File(s) can be found at {clsBase.rootDir}", "Process Complete", MessageBoxButton.OK, MessageBoxImage.Information)
+                MessageBox.Show(ex.Message, "Process Failed", MessageBoxButton.OK, MessageBoxImage.Error)
+                Enabler(True)
+
             End Try
+        End If
+    End Sub
 
-            Enabler(True)
+    Private Sub pgnExtractExists()
+        Dim executableName As String = "pgn-extract"
+        Dim processStartInfo As New ProcessStartInfo()
+        With processStartInfo
+            .FileName = "cmd.exe"
+            .Arguments = $"/C {executableName} -h"
+            .CreateNoWindow = True
+            .RedirectStandardError = True
+            .UseShellExecute = False
+        End With
 
-        Catch ex As Exception
-            MessageBox.Show(ex.Message, "Could not process", MessageBoxButton.OK, MessageBoxImage.Error)
-            Enabler(True)
+        Dim process As New Process() With {.StartInfo = processStartInfo}
+        process.Start()
 
-        End Try
+        Dim sOutput As String
+        Using oStreamReader As IO.StreamReader = process.StandardError
+            sOutput = oStreamReader.ReadToEnd()
+        End Using
+        process.WaitForExit()
+
+        If sOutput.Contains("is not recognized") Then
+            ErrorList = $"{executableName} not found, unable to continue"
+        End If
     End Sub
 
     Private Sub Enabler(ByVal pi_IsEnabled As Boolean)
         'toggle the inputs between enabled or not
         cmd_Run.IsEnabled = pi_IsEnabled
+
         inp_FirstName.IsEnabled = pi_IsEnabled
         inp_LastName.IsEnabled = pi_IsEnabled
         inp_Username.IsEnabled = pi_IsEnabled
@@ -83,6 +136,8 @@
         sel_Color.IsEnabled = pi_IsEnabled
         inp_StartDate.IsEnabled = pi_IsEnabled
         inp_EndDate.IsEnabled = pi_IsEnabled
+        chk_ReplaceUsername.IsEnabled = pi_IsEnabled
+        chk_WriteLog.IsEnabled = pi_IsEnabled
     End Sub
 
 #Region "Validation"

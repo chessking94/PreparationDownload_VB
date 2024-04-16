@@ -19,7 +19,9 @@ Public Class clsProcessing : Inherits clsBase
         End With
         objl_Parameters.Clean()
 
-        'TODO: Option to insert record to database for logging
+        If MainWindow.WriteLog Then
+            'TODO: Option to insert record to database for logging
+        End If
 
         If Lichess IsNot Nothing Then
             BeforeDownload(Lichess.outputDir)
@@ -35,7 +37,9 @@ Public Class clsProcessing : Inherits clsBase
 
         ProcessGames(objl_Parameters)
 
-        'TODO: Update previously created database logging record if necessary
+        If MainWindow.WriteLog Then
+            'TODO: Update previously created database logging record if necessary
+        End If
     End Sub
 
     Friend Sub BeforeDownload(outputDir As String)
@@ -182,7 +186,7 @@ Public Class clsProcessing : Inherits clsBase
             End If
         Next
 
-        'count games for logging
+        'TODO: count games for logging
     End Sub
 
     Friend Function CreateUserList(Site As String, objm_Parameters As _clsParameters)
@@ -217,7 +221,7 @@ Public Class clsProcessing : Inherits clsBase
 
         If objl_Users?.Count = 0 Then
             If objm_Parameters.GetUsername Then
-                'need to error out/notify user in some way, unable to get username from first/last provided
+                Throw New MissingMemberException($"Unable to determine {Site} username")
             Else
                 Dim objl_User As New _clsUser With {.Username = objm_Parameters.Username}
                 objl_Users.Add(0, objl_User)
@@ -228,7 +232,7 @@ Public Class clsProcessing : Inherits clsBase
     End Function
 
     Friend Function GetPlayerNameForFile(pi_Parameters As _clsParameters) As String
-        If pi_Parameters.LastName <> "" Then
+        If MainWindow.ReplaceUsername AndAlso pi_Parameters.LastName <> "" Then
             Return pi_Parameters.LastName & nameDelimiter & pi_Parameters.FirstName
         Else
             Return pi_Parameters.Username
