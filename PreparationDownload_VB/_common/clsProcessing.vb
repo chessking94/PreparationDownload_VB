@@ -20,8 +20,11 @@ Public Class clsProcessing : Inherits clsBase
         objl_Parameters.Clean()
 
         If MainWindow.WriteLog Then
-            'TODO: Option to insert record to database for logging
+            WriteLogEntry(objl_Parameters)
         End If
+
+        Dim stopwatch As New Stopwatch()
+        stopwatch.Start()
 
         If Lichess IsNot Nothing Then
             BeforeDownload(Lichess.outputDir)
@@ -37,12 +40,66 @@ Public Class clsProcessing : Inherits clsBase
 
         ProcessGames(objl_Parameters)
 
+        stopwatch.Stop()
+        objl_Parameters.ProcessSeconds = Math.Round(stopwatch.ElapsedMilliseconds / 1000)
+
         If MainWindow.WriteLog Then
-            'TODO: Update previously created database logging record if necessary
+            WriteLogEntry(objl_Parameters)
         End If
     End Sub
 
-    Friend Sub BeforeDownload(outputDir As String)
+    Private Sub WriteLogEntry(ByRef pi_Parameters As _clsParameters)
+        Dim player As String = If(pi_Parameters.Username = "", $"{pi_Parameters.LastName}, {pi_Parameters.FirstName}", pi_Parameters.Username)
+        Dim site As String = If(pi_Parameters.Site = "All", DBNull.Value, pi_Parameters.Site)
+        Dim timeControl As String = If(pi_Parameters.TimeControl = "All", DBNull.Value, pi_Parameters.TimeControl)
+        Dim color As String = If(pi_Parameters.Color = "Both", DBNull.Value, pi_Parameters.Color)
+        Dim startDate As String = If(pi_Parameters.StartDate = Date.MinValue, DBNull.Value, pi_Parameters.StartDate.ToString("yyyy-MM-dd"))
+        Dim endDate As String = If(pi_Parameters.EndDate = Date.MinValue, DBNull.Value, pi_Parameters.EndDate.ToString("yyyy-MM-dd"))
+        Dim outPath As String = rootDir
+
+        Dim objl_CMD As New Data.SqlClient.SqlCommand With {
+            .Connection = Connection(strv_Application:=Assembly.GetCallingAssembly().GetName().Name),
+            .CommandType = Data.CommandType.Text
+        }
+
+        If pi_Parameters.DownloadID = 0 Then
+            With objl_CMD
+                .CommandText = clsSqlQueries.InsertLog()
+                .Parameters.AddWithValue("@Player", player)
+                .Parameters.AddWithValue("@Site", site)
+                .Parameters.AddWithValue("@TimeControl", timeControl)
+                .Parameters.AddWithValue("@Color", color)
+                .Parameters.AddWithValue("@StartDate", startDate)
+                .Parameters.AddWithValue("@EndDate", endDate)
+                .Parameters.AddWithValue("@OutPath", outPath)
+            End With
+
+        Else
+            With objl_CMD
+                .CommandText = clsSqlQueries.UpdateLog()
+                .Parameters.AddWithValue("@Seconds", pi_Parameters.ProcessSeconds)
+                .Parameters.AddWithValue("@Games", site)
+                .Parameters.AddWithValue("@ID", pi_Parameters.DownloadID)
+            End With
+        End If
+
+        objl_CMD.ExecuteNonQuery()
+
+        If pi_Parameters.DownloadID = 0 Then
+            objl_CMD.Parameters.Clear()
+            objl_CMD.CommandText = clsSqlQueries.GetLastLog()
+            With objl_CMD.ExecuteReader
+                While .Read
+                    pi_Parameters.DownloadID = .Item("DownloadID")
+                End While
+                .Close()
+            End With
+        End If
+
+        objl_CMD.Dispose()
+    End Sub
+
+    Private Sub BeforeDownload(outputDir As String)
         If Directory.Exists(outputDir) Then
             Directory.Delete(outputDir, True)
         End If
@@ -50,7 +107,7 @@ Public Class clsProcessing : Inherits clsBase
         Directory.CreateDirectory(outputDir)
     End Sub
 
-    Friend Sub AfterDownload(Site As String, outputDir As String)
+    Private Sub AfterDownload(Site As String, outputDir As String)
         'merge all files
         Dim mergeName As String = $"{Site}_Merged_{Date.Now.ToString("yyyyMMddHHmmss")}.pgn"
         RunCommand($"copy /B *.pgn {mergeName} >nul", outputDir)
@@ -60,7 +117,8 @@ Public Class clsProcessing : Inherits clsBase
         RunCommand($"pgn-extract -N -V -D -pl2 --quiet --nosetuptags --output {cleanName} {mergeName} >nul", outputDir)
 
         If Site = "Chess.com" Then
-            'TODO: Need to remove non-standard games - can this be a function/sub in clsCDC instead of here?
+            'TODO: Need to remove non-standard games
+            'might be a fun exercise to write my own pgn parser, the main .NET parser I found (pgn.net) is almost 10 years old
         End If
 
         'post-process clean-up
@@ -68,7 +126,7 @@ Public Class clsProcessing : Inherits clsBase
         Directory.Delete(outputDir, True)
     End Sub
 
-    Friend Sub ProcessGames(pi_Parameters As _clsParameters)
+    Private Sub ProcessGames(ByRef pi_Parameters As _clsParameters)
         Dim playerName As String = GetPlayerNameForFile(pi_Parameters)
 
         'merge the site files into a single file
@@ -132,7 +190,7 @@ Public Class clsProcessing : Inherits clsBase
                 writer.WriteLine($"Date >= ""{endDatePGNFormat}""")
             End Using
 
-            'filter start date
+            'filter end date
             endDateName = $"ED_{startDateName}"
             RunCommand($"pgn-extract --quiet -t{endTagName} --output {endDateName} {startDateName} >nul", rootDir)
         End If
@@ -148,7 +206,6 @@ Public Class clsProcessing : Inherits clsBase
         Dim keepFiles As New List(Of String)
 
         'split into White/Black game files
-        'create temporary tag files
         Dim whiteTagName As String = "WhiteTag.txt"
         Dim whiteTagFile As String = Path.Combine(rootDir, whiteTagName)
         Using writer As New StreamWriter(whiteTagFile)
@@ -161,21 +218,25 @@ Public Class clsProcessing : Inherits clsBase
             writer.WriteLine($"Black ""{playerName.Replace(nameDelimiter, ", ")}""")
         End Using
 
+        Dim countFile As String = ""
         Dim whiteList As New List(Of String) From {"Both", "White"}
         If whiteList.Contains(pi_Parameters.Color) Then
             RunCommand($"pgn-extract --quiet -t{whiteTagName} --output {whiteName} {sortName} >nul", rootDir)
-            keepFiles.Add(Path.Combine(rootDir, whiteName))
+            countFile = Path.Combine(rootDir, whiteName)
+            keepFiles.Add(countFile)
         End If
 
         Dim blackList As New List(Of String) From {"Both", "Black"}
         If blackList.Contains(pi_Parameters.Color) Then
             RunCommand($"pgn-extract --quiet -t{blackTagName} --output {blackName} {sortName} >nul", rootDir)
-            keepFiles.Add(Path.Combine(rootDir, blackName))
+            countFile = Path.Combine(rootDir, blackName)
+            keepFiles.Add(countFile)
         End If
 
         File.Move(Path.Combine(rootDir, sortName), Path.Combine(rootDir, combinedName))
         If pi_Parameters.Color = "Both" Then
-            keepFiles.Add(Path.Combine(rootDir, combinedName))
+            countFile = Path.Combine(rootDir, combinedName)
+            keepFiles.Add(countFile)
         End If
 
         'clean up directory
@@ -186,7 +247,7 @@ Public Class clsProcessing : Inherits clsBase
             End If
         Next
 
-        'TODO: count games for logging
+        pi_Parameters.GameCount = CountGames(countFile)
     End Sub
 
     Friend Function CreateUserList(Site As String, objm_Parameters As _clsParameters)
@@ -231,7 +292,7 @@ Public Class clsProcessing : Inherits clsBase
         Return objl_Users
     End Function
 
-    Friend Function GetPlayerNameForFile(pi_Parameters As _clsParameters) As String
+    Private Function GetPlayerNameForFile(pi_Parameters As _clsParameters) As String
         If MainWindow.ReplaceUsername AndAlso pi_Parameters.LastName <> "" Then
             Return pi_Parameters.LastName & nameDelimiter & pi_Parameters.FirstName
         Else
@@ -239,7 +300,7 @@ Public Class clsProcessing : Inherits clsBase
         End If
     End Function
 
-    Friend Function GetTimeControlLimits(timeControlName As String, limit As String) As String
+    Private Function GetTimeControlLimits(timeControlName As String, limit As String) As String
         'TODO: Add new OnlineMinSeconds and OnlineMaxSeconds to ChessWarehouse.dim.TimeControls, can't right now since server problem and source control
         Dim minSeconds As Long = 0
         Dim maxSeconds As Long = 0
@@ -271,11 +332,11 @@ Public Class clsProcessing : Inherits clsBase
         End Select
     End Function
 
-    Friend Function FormatDateForPGN(dateValue As Date) As String
+    Private Function FormatDateForPGN(dateValue As Date) As String
         Return dateValue.ToString("yyyy.MM.dd")
     End Function
 
-    Friend Function SetBaseOutputName(pi_Parameters As _clsParameters) As String
+    Private Function SetBaseOutputName(pi_Parameters As _clsParameters) As String
         Dim baseName As String = GetPlayerNameForFile(pi_Parameters)
         baseName = baseName.Replace(nameDelimiter, "")
 
@@ -296,6 +357,21 @@ Public Class clsProcessing : Inherits clsBase
         Return baseName
     End Function
 
+    Private Function CountGames(fileName As String) As Long
+        Dim gameCount As Long = 0
+        Using reader As New StreamReader(fileName)
+            Dim line As String = Nothing
+            While Not reader.EndOfStream
+                line = reader.ReadLine()
+                If line.Contains("[Event """) Then
+                    gameCount += 1
+                End If
+            End While
+        End Using
+
+        Return gameCount
+    End Function
+
     Public Class _clsParameters
         Public Property FirstName As String
         Public Property LastName As String
@@ -305,7 +381,11 @@ Public Class clsProcessing : Inherits clsBase
         Public Property Color As String
         Public Property StartDate As Date
         Public Property EndDate As Date
+
         Public Property GetUsername As Boolean = True
+        Public Property DownloadID As Long = 0
+        Public Property GameCount As Long = 0
+        Public Property ProcessSeconds As Double = 0
 
         Friend Sub Clean()
             FirstName = FirstName.Trim()

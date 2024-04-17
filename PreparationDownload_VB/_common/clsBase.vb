@@ -33,21 +33,6 @@ Public MustInherit Class clsBase
             End While
         End If
     End Sub
-
-    Public Shared Function ConnectionString(Optional strv_Database As String = "ChessWarehouse", Optional strv_Application As String = "") As String
-        Return _
-            "Server=localhost" &
-            ";Database=" & strv_Database &
-            ";Integrated Security=SSPI" &
-            ";Application Name=" & strv_Application &
-            ";MultipleActiveResultSets=True"
-    End Function
-
-    Public Shared Function Connection(Optional strv_Database As String = "ChessWarehouse", Optional strv_Application As String = "") As System.Data.SqlClient.SqlConnection
-        Dim objl_Connection As New System.Data.SqlClient.SqlConnection(ConnectionString(strv_Database, strv_Application))
-        objl_Connection.Open()
-        Return objl_Connection
-    End Function
 #End Region
 
 #Region "Overrides"
