@@ -1,5 +1,7 @@
-﻿Imports System.IO
+﻿Imports System.Globalization
+Imports System.IO
 Imports System.Reflection
+Imports System.Text
 
 Public Class clsProcessing : Inherits clsBase
     Public Property CDC As clsCDC
@@ -202,8 +204,9 @@ Public Class clsProcessing : Inherits clsBase
         End If
 
         'sort games - TODO: how to do? Maybe there's a PGN parsing library somewhere (or pgn-extract can do it)
-        Dim sortName As String = endDateName
         'statusbar = "Sorting Games"
+        Dim sortName As String = endDateName
+        'SortGameFile(Path.Combine(rootDir, sortName))
 
         'set final file names
         Dim baseName As String = SetBaseOutputName(pi_Parameters)
@@ -257,6 +260,59 @@ Public Class clsProcessing : Inherits clsBase
 
         'statusbar = '"Counting Games"
         pi_Parameters.GameCount = CountGames(countFile)
+    End Sub
+
+    Private Sub SortGameFile(fileName As String)
+        'TODO: May need to make this a function and return a _Sorted filename
+        Dim ctr As Long = 1
+        Dim objl_Lines As New List(Of String)
+
+        'in the long run, I should use a class instead of multiple dictionaries. something for Chess_NetCore
+        Dim objl_Dates As New Dictionary(Of Long, Date)
+        Dim objl_Games As New Dictionary(Of Long, List(Of String))
+
+        Dim newGame As Boolean = True
+        Dim tagsComplete As Boolean = False
+        Using reader As New StreamReader(fileName)
+            Dim line As String = Nothing
+            While Not reader.EndOfStream
+                line = reader.ReadLine()
+                If line = "" Then
+                    If Not newGame Then
+                        If tagsComplete Then
+                            objl_Games.Add(ctr, objl_Lines)
+                            objl_Lines.Clear()
+
+                            newGame = True
+                            tagsComplete = False
+                            ctr += 1
+                        Else
+                            objl_Lines.Add(line)
+                            tagsComplete = True
+                        End If
+                    End If
+                Else
+                    newGame = False
+                    objl_Lines.Add(line)
+                    If line.Contains("[Date """) Then
+                        Dim dateString As String = line.Substring(7, 10)
+                        Dim gameDate As Date = Date.ParseExact(dateString, "yyyy.MM.dd", CultureInfo.InvariantCulture)
+                        objl_Dates.Add(ctr, gameDate)
+                    End If
+                End If
+            End While
+        End Using
+
+        Dim objl_DatesSorted = objl_Dates.OrderBy(Function(pair) pair.Value)
+
+        For Each game In objl_DatesSorted
+            Using writer As New StreamWriter(fileName, False, Encoding.UTF8)
+                For Each line As String In objl_Games(game.Key)  'TODO: this doesn't seem to be returning the value in objl_Games, so files write as empty
+                    writer.WriteLine(line)
+                Next
+                writer.WriteLine(vbCrLf)
+            End Using
+        Next
     End Sub
 
     Friend Function CreateUserList(Site As String, objm_Parameters As _clsParameters)
