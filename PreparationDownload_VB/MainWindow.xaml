@@ -6,22 +6,22 @@
         xmlns:local="clr-namespace:PreparationDownload_VB"
         xmlns:VisualBasic="clr-namespace:Microsoft.VisualBasic;assembly=Microsoft.VisualBasic.Core" x:Class="MainWindow"
         mc:Ignorable="d"
-        Title="Preparation Downloader" Height="400" Width="400">
-    <Grid>
-        <Label Content="First Name" HorizontalAlignment="Left" Margin="90,19,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="inp_FirstName" HorizontalAlignment="Left" Margin="205,24,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="FirstLastChanged"/>
-        <Label Content="Last Name" HorizontalAlignment="Left" Margin="90,49,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="inp_LastName" HorizontalAlignment="Left" Margin="205,54,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="FirstLastChanged"/>
-        <Label Content="Username" HorizontalAlignment="Left" Margin="93,79,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="inp_Username" HorizontalAlignment="Left" Margin="205,84,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="UsernameChanged"/>
-        <Label Content="Site" HorizontalAlignment="Left" Margin="126,109,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="sel_Site" HorizontalAlignment="Left" Margin="205,109,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
+        Title="Preparation Downloader" Height="450" Width="450">
+    <Grid Margin="0,0,0,20">
+        <Label Content="First Name" HorizontalAlignment="Left" Margin="112,13,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="inp_FirstName" HorizontalAlignment="Left" Margin="227,18,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="FirstLastChanged"/>
+        <Label Content="Last Name" HorizontalAlignment="Left" Margin="112,43,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="inp_LastName" HorizontalAlignment="Left" Margin="227,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="FirstLastChanged"/>
+        <Label Content="Username" HorizontalAlignment="Left" Margin="115,73,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="inp_Username" HorizontalAlignment="Left" Margin="227,78,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="UsernameChanged"/>
+        <Label Content="Site" HorizontalAlignment="Left" Margin="148,103,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="sel_Site" HorizontalAlignment="Left" Margin="227,103,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
             <ComboBoxItem Content="Chess.com"/>
             <ComboBoxItem Content="Lichess"/>
             <ComboBoxItem Content="All"/>
         </ComboBox>
-        <Label Content="Time Control" HorizontalAlignment="Left" Margin="78,137,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="sel_TimeControl" HorizontalAlignment="Left" Margin="205,139,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
+        <Label Content="Time Control" HorizontalAlignment="Left" Margin="100,131,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="sel_TimeControl" HorizontalAlignment="Left" Margin="227,133,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
             <ComboBoxItem Content="Bullet"/>
             <ComboBoxItem Content="Blitz"/>
             <ComboBoxItem Content="Rapid"/>
@@ -29,18 +29,21 @@
             <ComboBoxItem Content="Correspondence"/>
             <ComboBoxItem Content="All"/>
         </ComboBox>
-        <Label Content="Color" HorizontalAlignment="Left" Margin="119,169,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="sel_Color" HorizontalAlignment="Left" Margin="205,169,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
+        <Label Content="Color" HorizontalAlignment="Left" Margin="141,163,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="sel_Color" HorizontalAlignment="Left" Margin="227,163,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
             <ComboBoxItem Content="White"/>
             <ComboBoxItem Content="Black"/>
             <ComboBoxItem Content="Both"/>
         </ComboBox>
-        <Label Content="Start Date" HorizontalAlignment="Left" Margin="95,199,0,0" VerticalAlignment="Top"/>
-        <DatePicker x:Name="inp_StartDate" HorizontalAlignment="Left" Margin="205,199,0,0" VerticalAlignment="Top" SelectedDateFormat="Short" Width="120"/>
-        <Label Content="End Date" HorizontalAlignment="Left" Margin="99,229,0,0" VerticalAlignment="Top"/>
-        <DatePicker x:Name="inp_EndDate" HorizontalAlignment="Left" Margin="205,229,0,0" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="cmd_Run" Content="Download" HorizontalAlignment="Center" Margin="0,340,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="chk_ReplaceUsername" Content="Replace Username with Real Name" HorizontalAlignment="Left" Margin="117,269,0,0" VerticalAlignment="Top" Checked="ReplaceUsername_Checked" IsChecked="True"/>
-        <CheckBox x:Name="chk_WriteLog" Content="Write Log Record" HorizontalAlignment="Left" Margin="117,301,0,0" VerticalAlignment="Top" Checked="WriteLog_Checked"/>
+        <Label Content="Start Date" HorizontalAlignment="Left" Margin="117,193,0,0" VerticalAlignment="Top"/>
+        <DatePicker x:Name="inp_StartDate" HorizontalAlignment="Left" Margin="227,193,0,0" VerticalAlignment="Top" SelectedDateFormat="Short" Width="120"/>
+        <Label Content="End Date" HorizontalAlignment="Left" Margin="121,223,0,0" VerticalAlignment="Top"/>
+        <DatePicker x:Name="inp_EndDate" HorizontalAlignment="Left" Margin="227,223,0,0" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="cmd_Run" Content="Download" HorizontalAlignment="Center" Margin="0,334,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="chk_ReplaceUsername" Content="Replace Username with Real Name" HorizontalAlignment="Left" Margin="139,263,0,0" VerticalAlignment="Top" Checked="ReplaceUsername_Checked" IsChecked="True"/>
+        <CheckBox x:Name="chk_WriteLog" Content="Write Log Record" HorizontalAlignment="Left" Margin="139,295,0,0" VerticalAlignment="Top" Checked="WriteLog_Checked"/>
+        <StatusBar x:Name="txt_StatusBar" Margin="0,380,0,-18" Opacity="0.5">
+            <TextBox x:Name="tb_Status" TextWrapping="Wrap" Text="Please enter download parameters" Width="446" HorizontalAlignment="Center" Opacity="0.5"/>
+        </StatusBar>
     </Grid>
 </Window>

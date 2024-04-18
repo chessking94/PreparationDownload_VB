@@ -27,12 +27,14 @@ Public Class clsProcessing : Inherits clsBase
         stopwatch.Start()
 
         If Lichess IsNot Nothing Then
+            'statusbar = "Downloading Lichess Games"
             BeforeDownload(Lichess.outputDir)
             Lichess.DownloadGames(objl_Parameters)
             AfterDownload(Lichess.cSite, Lichess.outputDir)
         End If
 
         If CDC IsNot Nothing Then
+            'statusbar = "Downloading Chess.com Games"
             BeforeDownload(CDC.outputDir)
             CDC.DownloadGames(objl_Parameters)
             AfterDownload(CDC.cSite, CDC.outputDir)
@@ -130,12 +132,14 @@ Public Class clsProcessing : Inherits clsBase
         Dim playerName As String = GetPlayerNameForFile(pi_Parameters)
 
         'merge the site files into a single file
+        'statusbar = '"Merging Game Files"
         Dim mergeName As String = $"{playerName}_Merged_{Date.Now.ToString("yyyyMMddHHmmss")}.pgn"
         RunCommand($"copy /B *.pgn {mergeName} >nul", rootDir)
 
         'extract time control games
         Dim timeControlName As String = mergeName
         If pi_Parameters.TimeControl <> "All" Then
+            'statusbar = '"Applying Time Control Parameters"
             Dim minSeconds As Long = GetTimeControlLimits(pi_Parameters.TimeControl, "Min")
             Dim maxSeconds As Long = GetTimeControlLimits(pi_Parameters.TimeControl, "Max")
 
@@ -164,6 +168,7 @@ Public Class clsProcessing : Inherits clsBase
         'extract start date games
         Dim startDateName As String = timeControlName
         If pi_Parameters.StartDate <> Date.MinValue Then
+            'statusbar = '"Applying Start Date Parameter"
             Dim startDatePGNFormat As String = FormatDateForPGN(pi_Parameters.StartDate)
 
             'create temporary tag file
@@ -181,6 +186,7 @@ Public Class clsProcessing : Inherits clsBase
         'extract end date games
         Dim endDateName As String = startDateName
         If pi_Parameters.EndDate <> Date.MinValue Then
+            'statusbar = '"Applying End Date Parameter"
             Dim endDatePGNFormat As String = FormatDateForPGN(pi_Parameters.EndDate)
 
             'create temporary tag file
@@ -197,6 +203,7 @@ Public Class clsProcessing : Inherits clsBase
 
         'sort games - TODO: how to do? Maybe there's a PGN parsing library somewhere (or pgn-extract can do it)
         Dim sortName As String = endDateName
+        'statusbar = "Sorting Games"
 
         'set final file names
         Dim baseName As String = SetBaseOutputName(pi_Parameters)
@@ -206,6 +213,7 @@ Public Class clsProcessing : Inherits clsBase
         Dim keepFiles As New List(Of String)
 
         'split into White/Black game files
+        'statusbar = '"Splitting Into White/Black Files"
         Dim whiteTagName As String = "WhiteTag.txt"
         Dim whiteTagFile As String = Path.Combine(rootDir, whiteTagName)
         Using writer As New StreamWriter(whiteTagFile)
@@ -247,6 +255,7 @@ Public Class clsProcessing : Inherits clsBase
             End If
         Next
 
+        'statusbar = '"Counting Games"
         pi_Parameters.GameCount = CountGames(countFile)
     End Sub
 

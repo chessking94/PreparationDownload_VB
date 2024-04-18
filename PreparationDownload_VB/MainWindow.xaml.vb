@@ -76,9 +76,10 @@
                     Throw New Exception("Validation failed:" & vbCrLf & vbCrLf & ValidationFailReasons)
                 End If
 
-                'TODO: Add a progress bar
+                'TODO: Add a progress bar - initial attempt failed, can't seem to figure out how to make the TextBlock/TextBox object accessible outside of this class
 
                 RunProcess()
+
                 Try
                     Process.Start("explorer.exe", clsBase.rootDir)
                 Catch ex As Exception
