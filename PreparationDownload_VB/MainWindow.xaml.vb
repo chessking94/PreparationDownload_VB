@@ -78,7 +78,9 @@
 
                 'TODO: Add a progress bar - initial attempt failed, can't seem to figure out how to make the TextBlock/TextBox object accessible outside of this class
 
+                'tb_Status.Text = "Processing request..."
                 RunProcess()
+                'tb_Status.Text = "Process complete"
 
                 Try
                     Process.Start("explorer.exe", clsBase.rootDir)

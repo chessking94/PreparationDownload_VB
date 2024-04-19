@@ -15,6 +15,7 @@ Module modPublic
         Dim IsThreaded As Boolean = False
         If IsThreaded Then
             'TODO: This needs some work, want it to download all files simultaneously but that isn't what it does currently
+            'probably would need to use a background worker or something
             objl_process.StartThreaded()
             objl_process.WaitForEnd(True)
         Else
@@ -95,7 +96,7 @@ Module modPublic
     End Function
 
     Public Function Connection(Optional strv_Database As String = "ChessWarehouse", Optional strv_Application As String = "") As System.Data.SqlClient.SqlConnection
-        Dim objl_Connection As New System.Data.SqlClient.SqlConnection(ConnectionString(strv_Database, strv_Application))
+        Dim objl_Connection As New System.Data.SqlClient.SqlConnection(ConnectionString(strv_Database, strv_Application))  'TODO: Switch to Microsoft.Data.SqlClient
         objl_Connection.Open()
         Return objl_Connection
     End Function

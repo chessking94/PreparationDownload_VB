@@ -43,7 +43,6 @@ Public Class clsProcessing : Inherits clsBase
         End If
 
         ProcessGames(objl_Parameters)
-
         stopwatch.Stop()
         objl_Parameters.ProcessSeconds = Math.Round(stopwatch.ElapsedMilliseconds / 1000)
 
@@ -121,8 +120,55 @@ Public Class clsProcessing : Inherits clsBase
         RunCommand($"pgn-extract -N -V -D -pl2 --quiet --nosetuptags --output {cleanName} {mergeName} >nul", outputDir)
 
         If Site = "Chess.com" Then
-            'TODO: Need to remove non-standard games
-            'might be a fun exercise to write my own pgn parser, the main .NET parser I found (pgn.net) is almost 10 years old
+            Dim objl_Games As New Dictionary(Of Long, List(Of String))
+            Dim objl_StdGames As New List(Of Long)
+            Dim ctr As Long = 1
+
+            Dim newGame As Boolean = True
+            Dim tagsComplete As Boolean = False
+            Dim IsVariant As Boolean = False
+            Using reader As New StreamReader(Path.Combine(outputDir, cleanName))
+                Dim line As String = Nothing
+                Dim objl_Lines As New List(Of String)
+                While Not reader.EndOfStream
+                    line = reader.ReadLine()
+                    If line = "" Then
+                        If Not newGame Then
+                            If tagsComplete Then
+                                objl_Games.Add(ctr, New List(Of String)(objl_Lines))  'since I am clearing the list on the next line, I need to use a new list here to persist the dictionary addition
+                                objl_Lines.Clear()
+
+                                If Not IsVariant Then
+                                    objl_StdGames.Add(ctr)
+                                End If
+
+                                newGame = True
+                                tagsComplete = False
+                                IsVariant = False
+                                ctr += 1
+                            Else
+                                objl_Lines.Add(line)
+                                tagsComplete = True
+                            End If
+                        End If
+                    Else
+                        newGame = False
+                        objl_Lines.Add(line)
+                        If line.ToUpper().Contains("VARIANT") Then
+                            IsVariant = True
+                        End If
+                    End If
+                End While
+            End Using
+
+            Using writer As New StreamWriter(Path.Combine(outputDir, cleanName), False, Encoding.UTF8)
+                For Each game In objl_StdGames
+                    For Each line As String In objl_Games(game)
+                        writer.WriteLine(line)
+                    Next
+                    writer.WriteLine(vbCrLf)  'This is needed for proper spacing of the PGN
+                Next
+            End Using
         End If
 
         'post-process clean-up
@@ -203,10 +249,9 @@ Public Class clsProcessing : Inherits clsBase
             RunCommand($"pgn-extract --quiet -t{endTagName} --output {endDateName} {startDateName} >nul", rootDir)
         End If
 
-        'sort games - TODO: how to do? Maybe there's a PGN parsing library somewhere (or pgn-extract can do it)
+        'sort games
         'statusbar = "Sorting Games"
-        Dim sortName As String = endDateName
-        'SortGameFile(Path.Combine(rootDir, sortName))
+        Dim sortName As String = SortGameFile(endDateName, pi_Parameters)
 
         'set final file names
         Dim baseName As String = SetBaseOutputName(pi_Parameters)
@@ -262,10 +307,8 @@ Public Class clsProcessing : Inherits clsBase
         pi_Parameters.GameCount = CountGames(countFile)
     End Sub
 
-    Private Sub SortGameFile(fileName As String)
-        'TODO: May need to make this a function and return a _Sorted filename
+    Private Function SortGameFile(fileName As String, ByRef pi_Parameters As _clsParameters) As String
         Dim ctr As Long = 1
-        Dim objl_Lines As New List(Of String)
 
         'in the long run, I should use a class instead of multiple dictionaries. something for Chess_NetCore
         Dim objl_Dates As New Dictionary(Of Long, Date)
@@ -273,14 +316,15 @@ Public Class clsProcessing : Inherits clsBase
 
         Dim newGame As Boolean = True
         Dim tagsComplete As Boolean = False
-        Using reader As New StreamReader(fileName)
+        Using reader As New StreamReader(Path.Combine(rootDir, fileName))
             Dim line As String = Nothing
+            Dim objl_Lines As New List(Of String)
             While Not reader.EndOfStream
                 line = reader.ReadLine()
                 If line = "" Then
                     If Not newGame Then
                         If tagsComplete Then
-                            objl_Games.Add(ctr, objl_Lines)
+                            objl_Games.Add(ctr, New List(Of String)(objl_Lines))  'since I am clearing the list on the next line, I need to use a new list here to persist the dictionary addition
                             objl_Lines.Clear()
 
                             newGame = True
@@ -303,30 +347,35 @@ Public Class clsProcessing : Inherits clsBase
             End While
         End Using
 
-        Dim objl_DatesSorted = objl_Dates.OrderBy(Function(pair) pair.Value)
+        pi_Parameters.FirstGameDate = objl_Dates.Values.Min()
 
-        For Each game In objl_DatesSorted
-            Using writer As New StreamWriter(fileName, False, Encoding.UTF8)
-                For Each line As String In objl_Games(game.Key)  'TODO: this doesn't seem to be returning the value in objl_Games, so files write as empty
+        Dim objl_DatesSorted = objl_Dates.OrderBy(Function(pair) pair.Value)
+        Dim newFileName As String = $"Sorted_{fileName}"
+
+        Using writer As New StreamWriter(Path.Combine(rootDir, newFileName), False, Encoding.UTF8)
+            For Each game In objl_DatesSorted
+                For Each line As String In objl_Games(game.Key)
                     writer.WriteLine(line)
                 Next
-                writer.WriteLine(vbCrLf)
-            End Using
-        Next
-    End Sub
+                writer.WriteLine(vbCrLf)  'This is needed for proper spacing of the PGN
+            Next
+        End Using
 
-    Friend Function CreateUserList(Site As String, objm_Parameters As _clsParameters)
+        Return newFileName
+    End Function
+
+    Friend Function CreateUserList(Site As String, ByRef pi_Parameters As _clsParameters)
         Dim objl_CMD As New Data.SqlClient.SqlCommand With {.Connection = Connection(strv_Application:=Assembly.GetCallingAssembly().GetName().Name)}
 
-        If objm_Parameters.GetUsername Then
+        If pi_Parameters.GetUsername Then
             objl_CMD.CommandText = clsSqlQueries.FirstLast()
             objl_CMD.Parameters.AddWithValue("@Source", Site)
-            objl_CMD.Parameters.AddWithValue("@LastName", objm_Parameters.LastName)
-            objl_CMD.Parameters.AddWithValue("@FirstName", objm_Parameters.FirstName)
+            objl_CMD.Parameters.AddWithValue("@LastName", pi_Parameters.LastName)
+            objl_CMD.Parameters.AddWithValue("@FirstName", pi_Parameters.FirstName)
         Else
             objl_CMD.CommandText = clsSqlQueries.Username()
             objl_CMD.Parameters.AddWithValue("@Source", Site)
-            objl_CMD.Parameters.AddWithValue("@Username", objm_Parameters.Username)
+            objl_CMD.Parameters.AddWithValue("@Username", pi_Parameters.Username)
         End If
 
         Dim objl_Users As New Dictionary(Of Long, _clsUser)
@@ -339,6 +388,11 @@ Public Class clsProcessing : Inherits clsBase
                     objl_User.Username = .Item("Username")
 
                     objl_Users.Add(.Item("PlayerID"), objl_User)
+
+                    If pi_Parameters.LastName = "" Then
+                        pi_Parameters.LastName = objl_User.LastName
+                        pi_Parameters.FirstName = objl_User.FirstName
+                    End If
                 End If
             End While
             .Close()
@@ -346,10 +400,10 @@ Public Class clsProcessing : Inherits clsBase
         objl_CMD.Dispose()
 
         If objl_Users?.Count = 0 Then
-            If objm_Parameters.GetUsername Then
+            If pi_Parameters.GetUsername Then
                 Throw New MissingMemberException($"Unable to determine {Site} username")
             Else
-                Dim objl_User As New _clsUser With {.Username = objm_Parameters.Username}
+                Dim objl_User As New _clsUser With {.Username = pi_Parameters.Username}
                 objl_Users.Add(0, objl_User)
             End If
         End If
@@ -410,7 +464,7 @@ Public Class clsProcessing : Inherits clsBase
         If pi_Parameters.StartDate <> Date.MinValue Then
             baseName = $"{baseName}_{pi_Parameters.StartDate.ToString("yyyyMMdd")}"
         Else
-            baseName = $"{baseName}_yyyyMMdd"  'TODO: This date should be the earliest game in the file
+            baseName = $"{baseName}_{pi_Parameters.FirstGameDate.ToString("yyyyMMdd")}"
         End If
 
         If pi_Parameters.EndDate <> Date.MinValue Then
@@ -451,6 +505,7 @@ Public Class clsProcessing : Inherits clsBase
         Public Property DownloadID As Long = 0
         Public Property GameCount As Long = 0
         Public Property ProcessSeconds As Double = 0
+        Public Property FirstGameDate As Date
 
         Friend Sub Clean()
             FirstName = FirstName.Trim()
