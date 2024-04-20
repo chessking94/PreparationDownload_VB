@@ -53,9 +53,9 @@
         If ErrorList <> "" Then
             MessageBox.Show(ErrorList, "Process Failed - Missing Dependency", MessageBoxButton.OK, MessageBoxImage.Stop)
         Else
-            Try
-                Enabler(False)
+            Enabler(False)
 
+            Try
 #If DEBUG Then
                 FirstName = "Ethan"
                 LastName = "Hunt"
@@ -92,12 +92,13 @@
                     MessageBox.Show(ErrorList, "Process Complete - Errors", MessageBoxButton.OK, MessageBoxImage.Warning)
                 End If
 
+                ResetDefaults()
+
             Catch ex As Exception
                 MessageBox.Show(ex.Message, "Process Failed", MessageBoxButton.OK, MessageBoxImage.Error)
 
             End Try
 
-            ResetDefaults()
             Enabler(True)
         End If
     End Sub
