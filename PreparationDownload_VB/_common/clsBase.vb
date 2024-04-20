@@ -6,7 +6,7 @@ Public MustInherit Class clsBase
     Private WithEvents objm_Worker As New System.ComponentModel.BackgroundWorker
 
     Public Shared projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\.."))
-    Public Shared rootDir As String = SpecialDirectories.Desktop & Path.DirectorySeparatorChar & Assembly.GetCallingAssembly().GetName().Name
+    Public Shared rootDir As String = Path.Combine(SpecialDirectories.Desktop, "Local_Applications", Assembly.GetCallingAssembly().GetName().Name)
     Public Shared nameDelimiter As String = "$$"
 
 #Region "Friends"
