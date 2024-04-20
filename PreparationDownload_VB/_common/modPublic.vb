@@ -3,6 +3,19 @@ Imports System.Text
 
 Module modPublic
     Public Sub RunProcess()
+        'archive any old files that may be sitting in directory, just in case
+        Dim archiveDir As String = Path.Combine(clsBase.rootDir, "Archive")
+        If Not Directory.Exists(archiveDir) Then
+            Directory.CreateDirectory(archiveDir)
+        End If
+
+        Dim existingFiles As String() = Directory.GetFiles(clsBase.rootDir)
+        For Each srcFile As String In existingFiles
+            Dim destFile As String = Path.Combine(archiveDir, Path.GetFileName(srcFile))
+            File.Move(srcFile, destFile)
+        Next
+
+        'do the fun part now
         Dim objl_process As New clsProcessing
         If MainWindow.Site = "All" OrElse MainWindow.Site = "Chess.com" Then
             objl_process.CDC = New clsCDC

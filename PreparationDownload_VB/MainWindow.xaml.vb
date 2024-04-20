@@ -92,13 +92,13 @@
                     MessageBox.Show(ErrorList, "Process Complete - Errors", MessageBoxButton.OK, MessageBoxImage.Warning)
                 End If
 
-                Enabler(True)
-
             Catch ex As Exception
                 MessageBox.Show(ex.Message, "Process Failed", MessageBoxButton.OK, MessageBoxImage.Error)
-                Enabler(True)
 
             End Try
+
+            ResetDefaults()
+            Enabler(True)
         End If
     End Sub
 
@@ -141,6 +141,19 @@
         inp_EndDate.IsEnabled = pi_IsEnabled
         chk_ReplaceUsername.IsEnabled = pi_IsEnabled
         chk_WriteLog.IsEnabled = pi_IsEnabled
+    End Sub
+
+    Private Sub ResetDefaults()
+        inp_FirstName.Text = ""
+        inp_LastName.Text = ""
+        inp_Username.Text = ""
+        sel_Site.SelectedValue = Nothing
+        sel_TimeControl.SelectedValue = Nothing
+        sel_Color.SelectedValue = Nothing
+        inp_StartDate.SelectedDate = Nothing
+        inp_EndDate.SelectedDate = Nothing
+        chk_ReplaceUsername.IsChecked = True
+        chk_WriteLog.IsChecked = False
     End Sub
 
 #Region "Validation"
