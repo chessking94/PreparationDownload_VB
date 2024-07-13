@@ -72,12 +72,12 @@ Class MainWindow
                 StartDate = New Date(2024, 6, 1)
                 EndDate = New Date(2024, 7, 1)
 #Else
-            'validate inputs
-            ValidateName()
-            ValidateSite()
-            ValidateTimeControl()
-            ValidateColor()
-            ValidateDates()
+                'validate inputs
+                ValidateName()
+                ValidateSite()
+                ValidateTimeControl()
+                ValidateColor()
+                ValidateDates()
 #End If
 
                 If Not IsValidated Then
