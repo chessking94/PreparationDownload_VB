@@ -20,6 +20,11 @@ Class MainWindow
 
     Public Shared ErrorList As String  'TODO: Convert this to a proper list
 
+    Friend Sub UseArguments(args As String())
+        'TODO
+        MessageBox.Show("Command-line arguments received: " & String.Join(",", args))
+    End Sub
+
     Private Sub FirstLastChanged() Handles inp_FirstName.SelectionChanged, inp_LastName.SelectionChanged
         If inp_FirstName.Text <> "" OrElse inp_LastName.Text <> "" Then
             inp_Username.IsEnabled = False

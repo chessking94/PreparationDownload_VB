@@ -1,17 +1,20 @@
 ﻿Class Application
-
-    ' Application-level events, such as Startup, Exit, and DispatcherUnhandledException
-    ' can be handled in this file.
+    ' Application-level events, such as Startup, Exit, and DispatcherUnhandledException can be handled in this file.
 
     Private Sub Application_Startup(sender As Object, e As StartupEventArgs)
-        ' Check for command-line arguments
+        Dim mainWindow As New MainWindow()
+
         If e.Args.Length > 0 Then
-            ' Command-line arguments are present
-            MessageBox.Show("Command-line arguments received: " & String.Join(", ", e.Args))
+            'app.exe this is a test -> arguments are "this", "is", "a", and "test"
+            'app.exe "this is a test" yo -> "this is a test" and "yo"
+
+            'arguments, run without interactivity
+            mainWindow.UseArguments(e.Args)
+
+            'need to terminate the program at the end, doesn't seem to naturally
         Else
-            ' No command-line arguments, open the main window normally
-            Dim mainWindow As New MainWindow()
-            'mainWindow.Show()
+            'no arguments, open the interactive main window
+            mainWindow.Show()
         End If
     End Sub
 End Class
