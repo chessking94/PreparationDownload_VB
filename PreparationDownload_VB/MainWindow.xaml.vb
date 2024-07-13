@@ -1,6 +1,12 @@
-﻿Class MainWindow
+﻿'TODO: Support for variants
+'TODO: Additional arguments for ECO, minimum number of moves, etc. Might require pgn-extract loops
+'TODO: Casing; pgn-extract apparently needs exact upper/lower case for parsing usernames. Look into returning proper casing from API call if successful
+
+Class MainWindow
     Private Property IsValidated As Boolean = True
     Private Property ValidationFailReasons As String = ""
+
+    'TODO: VS doesn't like these "non-constant fields should not be visible". Can I rework this to make it more robust? Maybe move _clsParameters here?
     Public Shared FirstName As String
     Public Shared LastName As String
     Public Shared Username As String
@@ -12,7 +18,7 @@
     Public Shared ReplaceUsername As Boolean = True
     Public Shared WriteLog As Boolean = False
 
-    Public Shared ErrorList As String
+    Public Shared ErrorList As String  'TODO: Convert this to a proper list
 
     Private Sub FirstLastChanged() Handles inp_FirstName.SelectionChanged, inp_LastName.SelectionChanged
         If inp_FirstName.Text <> "" OrElse inp_LastName.Text <> "" Then
@@ -63,6 +69,8 @@
                 Site = "All"
                 TimeControl = "All"
                 Color = "Both"
+                StartDate = New Date(2024, 6, 1)
+                EndDate = New Date(2024, 7, 1)
 #Else
             'validate inputs
             ValidateName()
@@ -82,11 +90,13 @@
                 RunProcess()
                 'tb_Status.Text = "Process complete"
 
-                Try
-                    Process.Start("explorer.exe", clsBase.rootDir)
-                Catch ex As Exception
-                    ErrorList = AppendText(ErrorList, $"Unable to open directory {clsBase.rootDir}, file(s) can be found at that location")
-                End Try
+                If ErrorList = "" Then
+                    Try
+                        Process.Start("explorer.exe", clsBase.rootDir)
+                    Catch ex As Exception
+                        ErrorList = AppendText(ErrorList, $"Unable to open directory {clsBase.rootDir}, file(s) can be found at that location")
+                    End Try
+                End If
 
                 If ErrorList <> "" Then
                     MessageBox.Show(ErrorList, "Process Complete - Errors", MessageBoxButton.OK, MessageBoxImage.Warning)

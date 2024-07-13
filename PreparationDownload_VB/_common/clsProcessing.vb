@@ -53,11 +53,11 @@ Public Class clsProcessing : Inherits clsBase
 
     Private Sub WriteLogEntry(ByRef pi_Parameters As _clsParameters)
         Dim player As String = If(pi_Parameters.Username = "", $"{pi_Parameters.LastName}, {pi_Parameters.FirstName}", pi_Parameters.Username)
-        Dim site As String = If(pi_Parameters.Site = "All", DBNull.Value, pi_Parameters.Site)
-        Dim timeControl As String = If(pi_Parameters.TimeControl = "All", DBNull.Value, pi_Parameters.TimeControl)
-        Dim color As String = If(pi_Parameters.Color = "Both", DBNull.Value, pi_Parameters.Color)
-        Dim startDate As String = If(pi_Parameters.StartDate = Date.MinValue, DBNull.Value, pi_Parameters.StartDate.ToString("yyyy-MM-dd"))
-        Dim endDate As String = If(pi_Parameters.EndDate = Date.MinValue, DBNull.Value, pi_Parameters.EndDate.ToString("yyyy-MM-dd"))
+        Dim site As String = If(pi_Parameters.Site = "All", "", pi_Parameters.Site)
+        Dim timeControl As String = If(pi_Parameters.TimeControl = "All", "", pi_Parameters.TimeControl)
+        Dim color As String = If(pi_Parameters.Color = "Both", "", pi_Parameters.Color)
+        Dim startDate As String = If(pi_Parameters.StartDate = Date.MinValue, "", pi_Parameters.StartDate.ToString("yyyy-MM-dd"))
+        Dim endDate As String = If(pi_Parameters.EndDate = Date.MinValue, "", pi_Parameters.EndDate.ToString("yyyy-MM-dd"))
         Dim outPath As String = rootDir
 
         Dim objl_CMD As New Data.SqlClient.SqlCommand With {
@@ -69,11 +69,11 @@ Public Class clsProcessing : Inherits clsBase
             With objl_CMD
                 .CommandText = clsSqlQueries.InsertLog()
                 .Parameters.AddWithValue("@Player", player)
-                .Parameters.AddWithValue("@Site", site)
-                .Parameters.AddWithValue("@TimeControl", timeControl)
-                .Parameters.AddWithValue("@Color", color)
-                .Parameters.AddWithValue("@StartDate", startDate)
-                .Parameters.AddWithValue("@EndDate", endDate)
+                .Parameters.AddWithValue("@Site", If(site = "", DBNull.Value, site))
+                .Parameters.AddWithValue("@TimeControl", If(timeControl = "", DBNull.Value, timeControl))
+                .Parameters.AddWithValue("@Color", If(color = "", DBNull.Value, color))
+                .Parameters.AddWithValue("@StartDate", If(startDate = "", DBNull.Value, startDate))
+                .Parameters.AddWithValue("@EndDate", If(endDate = "", DBNull.Value, endDate))
                 .Parameters.AddWithValue("@OutPath", outPath)
             End With
 
@@ -81,13 +81,14 @@ Public Class clsProcessing : Inherits clsBase
             With objl_CMD
                 .CommandText = clsSqlQueries.UpdateLog()
                 .Parameters.AddWithValue("@Seconds", pi_Parameters.ProcessSeconds)
-                .Parameters.AddWithValue("@Games", site)
+                .Parameters.AddWithValue("@Games", pi_Parameters.GameCount)
                 .Parameters.AddWithValue("@ID", pi_Parameters.DownloadID)
             End With
         End If
 
         objl_CMD.ExecuteNonQuery()
 
+        'TODO: rework this block to avoid a second query?
         If pi_Parameters.DownloadID = 0 Then
             objl_CMD.Parameters.Clear()
             objl_CMD.CommandText = clsSqlQueries.GetLastLog()
@@ -253,46 +254,55 @@ Public Class clsProcessing : Inherits clsBase
         'statusbar = "Sorting Games"
         Dim sortName As String = SortGameFile(endDateName, pi_Parameters)
 
-        'set final file names
-        Dim baseName As String = SetBaseOutputName(pi_Parameters)
-        Dim whiteName As String = $"{baseName}_White.pgn"
-        Dim blackName As String = $"{baseName}_Black.pgn"
-        Dim combinedName As String = $"{baseName}_Combined.pgn"
         Dim keepFiles As New List(Of String)
+        If sortName <> "" Then
+            'set final file names
+            Dim baseName As String = SetBaseOutputName(pi_Parameters)
+            Dim whiteName As String = $"{baseName}_White.pgn"
+            Dim blackName As String = $"{baseName}_Black.pgn"
+            Dim combinedName As String = $"{baseName}_Combined.pgn"
 
-        'split into White/Black game files
-        'statusbar = '"Splitting Into White/Black Files"
-        Dim whiteTagName As String = "WhiteTag.txt"
-        Dim whiteTagFile As String = Path.Combine(rootDir, whiteTagName)
-        Using writer As New StreamWriter(whiteTagFile)
-            writer.WriteLine($"White ""{playerName.Replace(nameDelimiter, ", ")}""")
-        End Using
+            'split into White/Black game files
+            'statusbar = '"Splitting Into White/Black Files"
+            Dim whiteTagName As String = "WhiteTag.txt"
+            Dim whiteTagFile As String = Path.Combine(rootDir, whiteTagName)
+            Using writer As New StreamWriter(whiteTagFile)
+                writer.WriteLine($"White ""{playerName.Replace(nameDelimiter, ", ")}""")
+            End Using
 
-        Dim blackTagName As String = "BlackTag.txt"
-        Dim blackTagFile As String = Path.Combine(rootDir, blackTagName)
-        Using writer As New StreamWriter(blackTagFile)
-            writer.WriteLine($"Black ""{playerName.Replace(nameDelimiter, ", ")}""")
-        End Using
+            Dim blackTagName As String = "BlackTag.txt"
+            Dim blackTagFile As String = Path.Combine(rootDir, blackTagName)
+            Using writer As New StreamWriter(blackTagFile)
+                writer.WriteLine($"Black ""{playerName.Replace(nameDelimiter, ", ")}""")
+            End Using
 
-        Dim countFile As String = ""
-        Dim whiteList As New List(Of String) From {"Both", "White"}
-        If whiteList.Contains(pi_Parameters.Color) Then
-            RunCommand($"pgn-extract --quiet -t{whiteTagName} --output {whiteName} {sortName} >nul", rootDir)
-            countFile = Path.Combine(rootDir, whiteName)
-            keepFiles.Add(countFile)
+            Dim countFile As String = ""
+            Dim whiteList As New List(Of String) From {"Both", "White"}
+            If whiteList.Contains(pi_Parameters.Color) Then
+                RunCommand($"pgn-extract --quiet -t{whiteTagName} --output {whiteName} {sortName} >nul", rootDir)
+                countFile = Path.Combine(rootDir, whiteName)
+                keepFiles.Add(countFile)
+            End If
+
+            Dim blackList As New List(Of String) From {"Both", "Black"}
+            If blackList.Contains(pi_Parameters.Color) Then
+                RunCommand($"pgn-extract --quiet -t{blackTagName} --output {blackName} {sortName} >nul", rootDir)
+                countFile = Path.Combine(rootDir, blackName)
+                keepFiles.Add(countFile)
+            End If
+
+            File.Move(Path.Combine(rootDir, sortName), Path.Combine(rootDir, combinedName))
+            If pi_Parameters.Color = "Both" Then
+                countFile = Path.Combine(rootDir, combinedName)
+                keepFiles.Add(countFile)
+            End If
+
+            'statusbar = '"Counting Games"
+            pi_Parameters.GameCount = CountGames(countFile)
         End If
 
-        Dim blackList As New List(Of String) From {"Both", "Black"}
-        If blackList.Contains(pi_Parameters.Color) Then
-            RunCommand($"pgn-extract --quiet -t{blackTagName} --output {blackName} {sortName} >nul", rootDir)
-            countFile = Path.Combine(rootDir, blackName)
-            keepFiles.Add(countFile)
-        End If
-
-        File.Move(Path.Combine(rootDir, sortName), Path.Combine(rootDir, combinedName))
-        If pi_Parameters.Color = "Both" Then
-            countFile = Path.Combine(rootDir, combinedName)
-            keepFiles.Add(countFile)
+        If pi_Parameters.GameCount = 0 Then
+            MainWindow.ErrorList = AppendText(MainWindow.ErrorList, $"No games found for these parameters")
         End If
 
         'clean up directory
@@ -302,9 +312,6 @@ Public Class clsProcessing : Inherits clsBase
                 File.Delete(f)
             End If
         Next
-
-        'statusbar = '"Counting Games"
-        pi_Parameters.GameCount = CountGames(countFile)
     End Sub
 
     Private Function SortGameFile(fileName As String, ByRef pi_Parameters As _clsParameters) As String
@@ -347,19 +354,22 @@ Public Class clsProcessing : Inherits clsBase
             End While
         End Using
 
-        pi_Parameters.FirstGameDate = objl_Dates.Values.Min()
+        Dim newFileName As String = ""
+        If objl_Dates.Count > 0 Then
+            pi_Parameters.FirstGameDate = objl_Dates.Values.Min()
 
-        Dim objl_DatesSorted = objl_Dates.OrderBy(Function(pair) pair.Value)
-        Dim newFileName As String = $"Sorted_{fileName}"
+            Dim objl_DatesSorted = objl_Dates.OrderBy(Function(pair) pair.Value)
+            newFileName = $"Sorted_{fileName}"
 
-        Using writer As New StreamWriter(Path.Combine(rootDir, newFileName), False, Encoding.UTF8)
-            For Each game In objl_DatesSorted
-                For Each line As String In objl_Games(game.Key)
-                    writer.WriteLine(line)
+            Using writer As New StreamWriter(Path.Combine(rootDir, newFileName), False, Encoding.UTF8)
+                For Each game In objl_DatesSorted
+                    For Each line As String In objl_Games(game.Key)
+                        writer.WriteLine(line)
+                    Next
+                    writer.WriteLine(vbCrLf)  'This is needed for proper spacing of the PGN
                 Next
-                writer.WriteLine(vbCrLf)  'This is needed for proper spacing of the PGN
-            Next
-        End Using
+            End Using
+        End If
 
         Return newFileName
     End Function
