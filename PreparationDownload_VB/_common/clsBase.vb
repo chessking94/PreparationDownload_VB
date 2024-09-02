@@ -3,28 +3,28 @@ Imports System.IO
 Imports System.Reflection
 
 Public MustInherit Class clsBase
-    Private WithEvents objm_Worker As New ComponentModel.BackgroundWorker
+    Private WithEvents bgWorker As New ComponentModel.BackgroundWorker
 
     Public Shared projectDir As String = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\.."))
     Public Shared rootDir As String = Path.Combine(SpecialDirectories.Desktop, "Local_Applications", Assembly.GetCallingAssembly().GetName().Name)
     Public Shared nameDelimiter As String = "$$"
-    Public Shared ReadOnly objg_Config As New Utilities_NetCore.clsConfig
+    Public Shared ReadOnly myConfig As New Utilities_NetCore.clsConfig
 
     Friend Sub StartThreaded()
-        objm_Worker.RunWorkerAsync()
+        bgWorker.RunWorkerAsync()
     End Sub
 
     Friend Sub StartNonThreaded()
         Go()
     End Sub
 
-    Private Sub Go() Handles objm_Worker.DoWork
+    Private Sub Go() Handles bgWorker.DoWork
         Go_Child()
     End Sub
 
-    Public Sub WaitForEnd(boov_LastCall As Boolean)
-        If boov_LastCall OrElse MustWaitForFinish() Then
-            While objm_Worker.IsBusy
+    Public Sub WaitForEnd(pi_LastCall As Boolean)
+        If pi_LastCall OrElse MustWaitForFinish() Then
+            While bgWorker.IsBusy
                 Threading.Thread.Sleep(1000)
             End While
         End If
@@ -37,7 +37,7 @@ Public MustInherit Class clsBase
     End Function
 
     Friend Sub initializeConfig()
-        objg_Config.configFile = Path.Combine(projectDir, "appsettings.json")
-        objg_Config.buildConfig()
+        myConfig.configFile = Path.Combine(projectDir, "appsettings.json")
+        myConfig.buildConfig()
     End Sub
 End Class

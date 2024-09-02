@@ -21,7 +21,7 @@ Class MainWindow
     Public Shared ErrorList As String  'TODO: Convert this to a proper list
 
     'Friend Sub UseArguments(pi_args As String())
-    '    Dim objl_args As Dictionary(Of String, String) = Utilities_NetCore.ParseCommandLineArguments(pi_args)
+    '    Dim args As Dictionary(Of String, String) = Utilities_NetCore.ParseCommandLineArguments(pi_args)
 
     '    'TODO: set variable defaults
     '    'FirstName = "Ethan"
@@ -35,7 +35,7 @@ Class MainWindow
     '    'Replace username with real name = True
     '    'Write log record = True
 
-    '    For Each kvp As KeyValuePair(Of String, String) In objl_args
+    '    For Each kvp As KeyValuePair(Of String, String) In args
     '        MessageBox.Show($"Key: {kvp.Key}, Value: {kvp.Value}")
     '        Select Case kvp.Key.ToLower
     '            Case "-f", "--first"

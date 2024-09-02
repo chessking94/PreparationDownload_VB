@@ -8,8 +8,8 @@ Public Class clsProcessing : Inherits clsBase
     Public Property Lichess As clsLichess
 
     Protected Overrides Sub Go_Child()
-        Dim objl_Parameters As New _clsParameters
-        With objl_Parameters
+        Dim parameters As New _clsParameters
+        With parameters
             .FirstName = MainWindow.FirstName
             .LastName = MainWindow.LastName
             .Username = MainWindow.Username
@@ -19,10 +19,10 @@ Public Class clsProcessing : Inherits clsBase
             .StartDate = MainWindow.StartDate
             .EndDate = MainWindow.EndDate
         End With
-        objl_Parameters.Clean()
+        parameters.Clean()
 
         If MainWindow.WriteLog Then
-            WriteLogEntry(objl_Parameters)
+            WriteLogEntry(parameters)
         End If
 
         Dim stopwatch As New Stopwatch()
@@ -31,23 +31,23 @@ Public Class clsProcessing : Inherits clsBase
         If Lichess IsNot Nothing Then
             'statusbar = "Downloading Lichess Games"
             BeforeDownload(Lichess.outputDir)
-            Lichess.DownloadGames(objl_Parameters)
+            Lichess.DownloadGames(parameters)
             AfterDownload(Lichess.cSite, Lichess.outputDir)
         End If
 
         If CDC IsNot Nothing Then
             'statusbar = "Downloading Chess.com Games"
             BeforeDownload(CDC.outputDir)
-            CDC.DownloadGames(objl_Parameters)
+            CDC.DownloadGames(parameters)
             AfterDownload(CDC.cSite, CDC.outputDir)
         End If
 
-        ProcessGames(objl_Parameters)
+        ProcessGames(parameters)
         stopwatch.Stop()
-        objl_Parameters.ProcessSeconds = Math.Round(stopwatch.ElapsedMilliseconds / 1000)
+        parameters.ProcessSeconds = Math.Round(stopwatch.ElapsedMilliseconds / 1000)
 
         If MainWindow.WriteLog Then
-            WriteLogEntry(objl_Parameters)
+            WriteLogEntry(parameters)
         End If
     End Sub
 
@@ -60,13 +60,13 @@ Public Class clsProcessing : Inherits clsBase
         Dim endDate As String = If(pi_Parameters.EndDate = Date.MinValue, "", pi_Parameters.EndDate.ToString("yyyy-MM-dd"))
         Dim outPath As String = rootDir
 
-        Dim objl_CMD As New Data.SqlClient.SqlCommand With {
+        Dim command As New Data.SqlClient.SqlCommand With {
             .Connection = Connection(strv_Application:=Assembly.GetCallingAssembly().GetName().Name),
             .CommandType = Data.CommandType.Text
         }
 
         If pi_Parameters.DownloadID = 0 Then
-            With objl_CMD
+            With command
                 .CommandText = clsSqlQueries.InsertLog()
                 .Parameters.AddWithValue("@Player", player)
                 .Parameters.AddWithValue("@Site", If(site = "", DBNull.Value, site))
@@ -78,7 +78,7 @@ Public Class clsProcessing : Inherits clsBase
             End With
 
         Else
-            With objl_CMD
+            With command
                 .CommandText = clsSqlQueries.UpdateLog()
                 .Parameters.AddWithValue("@Seconds", pi_Parameters.ProcessSeconds)
                 .Parameters.AddWithValue("@Games", pi_Parameters.GameCount)
@@ -86,13 +86,13 @@ Public Class clsProcessing : Inherits clsBase
             End With
         End If
 
-        objl_CMD.ExecuteNonQuery()
+        command.ExecuteNonQuery()
 
         'TODO: rework this block to avoid a second query?
         If pi_Parameters.DownloadID = 0 Then
-            objl_CMD.Parameters.Clear()
-            objl_CMD.CommandText = clsSqlQueries.GetLastLog()
-            With objl_CMD.ExecuteReader
+            command.Parameters.Clear()
+            command.CommandText = clsSqlQueries.GetLastLog()
+            With command.ExecuteReader
                 While .Read
                     pi_Parameters.DownloadID = .Item("DownloadID")
                 End While
@@ -100,47 +100,47 @@ Public Class clsProcessing : Inherits clsBase
             End With
         End If
 
-        objl_CMD.Dispose()
+        command.Dispose()
     End Sub
 
-    Private Sub BeforeDownload(outputDir As String)
-        If Directory.Exists(outputDir) Then
-            Directory.Delete(outputDir, True)
+    Private Sub BeforeDownload(pi_outputDir As String)
+        If Directory.Exists(pi_outputDir) Then
+            Directory.Delete(pi_outputDir, True)
         End If
 
-        Directory.CreateDirectory(outputDir)
+        Directory.CreateDirectory(pi_outputDir)
     End Sub
 
-    Private Sub AfterDownload(Site As String, outputDir As String)
+    Private Sub AfterDownload(pi_Site As String, pi_outputDir As String)
         'merge all files
-        Dim mergeName As String = $"{Site}_Merged_{Date.Now.ToString("yyyyMMddHHmmss")}.pgn"
-        RunCommand($"copy /B *.pgn {mergeName} >nul", outputDir)
+        Dim mergeName As String = $"{pi_Site}_Merged_{Date.Now.ToString("yyyyMMddHHmmss")}.pgn"
+        RunCommand($"copy /B *.pgn {mergeName} >nul", pi_outputDir)
 
         'clean with pgn-extract - TODO: Figure out a way to package pgn-extract with this project, so it doesn't have to be called as an external dependency
-        Dim cleanName As String = $"{Site}_Cleaned_{Date.Now.ToString("yyyyMMddHHmmss")}.pgn"
-        RunCommand($"pgn-extract -N -V -D -pl2 --quiet --nosetuptags --output {cleanName} {mergeName} >nul", outputDir)
+        Dim cleanName As String = $"{pi_Site}_Cleaned_{Date.Now.ToString("yyyyMMddHHmmss")}.pgn"
+        RunCommand($"pgn-extract -N -V -D -pl2 --quiet --nosetuptags --output {cleanName} {mergeName} >nul", pi_outputDir)
 
-        If Site = "Chess.com" Then
-            Dim objl_Games As New Dictionary(Of Long, List(Of String))
-            Dim objl_StdGames As New List(Of Long)
+        If pi_Site = "Chess.com" Then
+            Dim allGames As New Dictionary(Of Long, List(Of String))
+            Dim standardGames As New List(Of Long)
             Dim ctr As Long = 1
 
             Dim newGame As Boolean = True
             Dim tagsComplete As Boolean = False
             Dim IsVariant As Boolean = False
-            Using reader As New StreamReader(Path.Combine(outputDir, cleanName))
+            Using reader As New StreamReader(Path.Combine(pi_outputDir, cleanName))
                 Dim line As String = Nothing
-                Dim objl_Lines As New List(Of String)
+                Dim allLines As New List(Of String)
                 While Not reader.EndOfStream
                     line = reader.ReadLine()
                     If line = "" Then
                         If Not newGame Then
                             If tagsComplete Then
-                                objl_Games.Add(ctr, New List(Of String)(objl_Lines))  'since I am clearing the list on the next line, I need to use a new list here to persist the dictionary addition
-                                objl_Lines.Clear()
+                                allGames.Add(ctr, New List(Of String)(allLines))  'since I am clearing the list on the next line, I need to use a new list here to persist the dictionary addition
+                                allLines.Clear()
 
                                 If Not IsVariant Then
-                                    objl_StdGames.Add(ctr)
+                                    standardGames.Add(ctr)
                                 End If
 
                                 newGame = True
@@ -148,13 +148,13 @@ Public Class clsProcessing : Inherits clsBase
                                 IsVariant = False
                                 ctr += 1
                             Else
-                                objl_Lines.Add(line)
+                                allLines.Add(line)
                                 tagsComplete = True
                             End If
                         End If
                     Else
                         newGame = False
-                        objl_Lines.Add(line)
+                        allLines.Add(line)
                         If line.ToUpper().Contains("VARIANT") Then
                             IsVariant = True
                         End If
@@ -162,9 +162,9 @@ Public Class clsProcessing : Inherits clsBase
                 End While
             End Using
 
-            Using writer As New StreamWriter(Path.Combine(outputDir, cleanName), False, Encoding.UTF8)
-                For Each game In objl_StdGames
-                    For Each line As String In objl_Games(game)
+            Using writer As New StreamWriter(Path.Combine(pi_outputDir, cleanName), False, Encoding.UTF8)
+                For Each game In standardGames
+                    For Each line As String In allGames(game)
                         writer.WriteLine(line)
                     Next
                     writer.WriteLine(vbCrLf)  'This is needed for proper spacing of the PGN
@@ -173,8 +173,8 @@ Public Class clsProcessing : Inherits clsBase
         End If
 
         'post-process clean-up
-        File.Move(Path.Combine(outputDir, cleanName), Path.Combine(rootDir, cleanName))
-        Directory.Delete(outputDir, True)
+        File.Move(Path.Combine(pi_outputDir, cleanName), Path.Combine(rootDir, cleanName))
+        Directory.Delete(pi_outputDir, True)
     End Sub
 
     Private Sub ProcessGames(ByRef pi_Parameters As _clsParameters)
@@ -314,56 +314,56 @@ Public Class clsProcessing : Inherits clsBase
         Next
     End Sub
 
-    Private Function SortGameFile(fileName As String, ByRef pi_Parameters As _clsParameters) As String
+    Private Function SortGameFile(pi_fileName As String, ByRef pi_Parameters As _clsParameters) As String
         Dim ctr As Long = 1
 
         'in the long run, I should use a class instead of multiple dictionaries. something for Chess_NetCore
-        Dim objl_Dates As New Dictionary(Of Long, Date)
-        Dim objl_Games As New Dictionary(Of Long, List(Of String))
+        Dim allDates As New Dictionary(Of Long, Date)
+        Dim allGames As New Dictionary(Of Long, List(Of String))
 
         Dim newGame As Boolean = True
         Dim tagsComplete As Boolean = False
-        Using reader As New StreamReader(Path.Combine(rootDir, fileName))
+        Using reader As New StreamReader(Path.Combine(rootDir, pi_fileName))
             Dim line As String = Nothing
-            Dim objl_Lines As New List(Of String)
+            Dim allLines As New List(Of String)
             While Not reader.EndOfStream
                 line = reader.ReadLine()
                 If line = "" Then
                     If Not newGame Then
                         If tagsComplete Then
-                            objl_Games.Add(ctr, New List(Of String)(objl_Lines))  'since I am clearing the list on the next line, I need to use a new list here to persist the dictionary addition
-                            objl_Lines.Clear()
+                            allGames.Add(ctr, New List(Of String)(allLines))  'since I am clearing the list on the next line, I need to use a new list here to persist the dictionary addition
+                            allLines.Clear()
 
                             newGame = True
                             tagsComplete = False
                             ctr += 1
                         Else
-                            objl_Lines.Add(line)
+                            allLines.Add(line)
                             tagsComplete = True
                         End If
                     End If
                 Else
                     newGame = False
-                    objl_Lines.Add(line)
+                    allLines.Add(line)
                     If line.Contains("[Date """) Then
                         Dim dateString As String = line.Substring(7, 10)
                         Dim gameDate As Date = Date.ParseExact(dateString, "yyyy.MM.dd", CultureInfo.InvariantCulture)
-                        objl_Dates.Add(ctr, gameDate)
+                        allDates.Add(ctr, gameDate)
                     End If
                 End If
             End While
         End Using
 
         Dim newFileName As String = ""
-        If objl_Dates.Count > 0 Then
-            pi_Parameters.FirstGameDate = objl_Dates.Values.Min()
+        If allDates.Count > 0 Then
+            pi_Parameters.FirstGameDate = allDates.Values.Min()
 
-            Dim objl_DatesSorted = objl_Dates.OrderBy(Function(pair) pair.Value)
-            newFileName = $"Sorted_{fileName}"
+            Dim objl_DatesSorted = allDates.OrderBy(Function(pair) pair.Value)
+            newFileName = $"Sorted_{pi_fileName}"
 
             Using writer As New StreamWriter(Path.Combine(rootDir, newFileName), False, Encoding.UTF8)
                 For Each game In objl_DatesSorted
-                    For Each line As String In objl_Games(game.Key)
+                    For Each line As String In allGames(game.Key)
                         writer.WriteLine(line)
                     Next
                     writer.WriteLine(vbCrLf)  'This is needed for proper spacing of the PGN
@@ -374,51 +374,51 @@ Public Class clsProcessing : Inherits clsBase
         Return newFileName
     End Function
 
-    Friend Function CreateUserList(Site As String, ByRef pi_Parameters As _clsParameters)
-        Dim objl_CMD As New Data.SqlClient.SqlCommand With {.Connection = Connection(strv_Application:=Assembly.GetCallingAssembly().GetName().Name)}
+    Friend Function CreateUserList(pi_Site As String, ByRef pi_Parameters As _clsParameters)
+        Dim command As New Data.SqlClient.SqlCommand With {.Connection = Connection(strv_Application:=Assembly.GetCallingAssembly().GetName().Name)}
 
         If pi_Parameters.GetUsername Then
-            objl_CMD.CommandText = clsSqlQueries.FirstLast()
-            objl_CMD.Parameters.AddWithValue("@Source", Site)
-            objl_CMD.Parameters.AddWithValue("@LastName", pi_Parameters.LastName)
-            objl_CMD.Parameters.AddWithValue("@FirstName", pi_Parameters.FirstName)
+            command.CommandText = clsSqlQueries.FirstLast()
+            command.Parameters.AddWithValue("@Source", pi_Site)
+            command.Parameters.AddWithValue("@LastName", pi_Parameters.LastName)
+            command.Parameters.AddWithValue("@FirstName", pi_Parameters.FirstName)
         Else
-            objl_CMD.CommandText = clsSqlQueries.Username()
-            objl_CMD.Parameters.AddWithValue("@Source", Site)
-            objl_CMD.Parameters.AddWithValue("@Username", pi_Parameters.Username)
+            command.CommandText = clsSqlQueries.Username()
+            command.Parameters.AddWithValue("@Source", pi_Site)
+            command.Parameters.AddWithValue("@Username", pi_Parameters.Username)
         End If
 
-        Dim objl_Users As New Dictionary(Of Long, _clsUser)
-        With objl_CMD.ExecuteReader
+        Dim users As New Dictionary(Of Long, _clsUser)
+        With command.ExecuteReader
             While .Read
                 If .Item("LastName") <> "" Then
-                    Dim objl_User As New _clsUser
-                    objl_User.LastName = .Item("LastName")
-                    objl_User.FirstName = .Item("FirstName")
-                    objl_User.Username = .Item("Username")
+                    Dim user As New _clsUser
+                    user.LastName = .Item("LastName")
+                    user.FirstName = .Item("FirstName")
+                    user.Username = .Item("Username")
 
-                    objl_Users.Add(.Item("PlayerID"), objl_User)
+                    users.Add(.Item("PlayerID"), user)
 
                     If pi_Parameters.LastName = "" Then
-                        pi_Parameters.LastName = objl_User.LastName
-                        pi_Parameters.FirstName = objl_User.FirstName
+                        pi_Parameters.LastName = user.LastName
+                        pi_Parameters.FirstName = user.FirstName
                     End If
                 End If
             End While
             .Close()
         End With
-        objl_CMD.Dispose()
+        command.Dispose()
 
-        If objl_Users?.Count = 0 Then
+        If users?.Count = 0 Then
             If pi_Parameters.GetUsername Then
-                Throw New MissingMemberException($"Unable to determine {Site} username")
+                Throw New MissingMemberException($"Unable to determine {pi_Site} username")
             Else
-                Dim objl_User As New _clsUser With {.Username = pi_Parameters.Username}
-                objl_Users.Add(0, objl_User)
+                Dim user As New _clsUser With {.Username = pi_Parameters.Username}
+                users.Add(0, user)
             End If
         End If
 
-        Return objl_Users
+        Return users
     End Function
 
     Private Function GetPlayerNameForFile(pi_Parameters As _clsParameters) As String
@@ -429,11 +429,11 @@ Public Class clsProcessing : Inherits clsBase
         End If
     End Function
 
-    Private Function GetTimeControlLimits(timeControlName As String, limit As String) As String
+    Private Function GetTimeControlLimits(pi_timeControlName As String, pi_limit As String) As String
         'TODO: Add new OnlineMinSeconds and OnlineMaxSeconds to ChessWarehouse.dim.TimeControls, can't right now since server problem and source control
         Dim minSeconds As Long = 0
         Dim maxSeconds As Long = 0
-        Select Case timeControlName
+        Select Case pi_timeControlName
             Case "Bullet"
                 minSeconds = 60
                 maxSeconds = 179
@@ -451,7 +451,7 @@ Public Class clsProcessing : Inherits clsBase
                 maxSeconds = 1209600
         End Select
 
-        Select Case limit
+        Select Case pi_limit
             Case "Min"
                 Return minSeconds
             Case "Max"
@@ -461,8 +461,8 @@ Public Class clsProcessing : Inherits clsBase
         End Select
     End Function
 
-    Private Function FormatDateForPGN(dateValue As Date) As String
-        Return dateValue.ToString("yyyy.MM.dd")
+    Private Function FormatDateForPGN(pi_dateValue As Date) As String
+        Return pi_dateValue.ToString("yyyy.MM.dd")
     End Function
 
     Private Function SetBaseOutputName(pi_Parameters As _clsParameters) As String
@@ -486,9 +486,9 @@ Public Class clsProcessing : Inherits clsBase
         Return baseName
     End Function
 
-    Private Function CountGames(fileName As String) As Long
+    Private Function CountGames(pi_fileName As String) As Long
         Dim gameCount As Long = 0
-        Using reader As New StreamReader(fileName)
+        Using reader As New StreamReader(pi_fileName)
             Dim line As String = Nothing
             While Not reader.EndOfStream
                 line = reader.ReadLine()

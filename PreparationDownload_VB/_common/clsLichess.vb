@@ -8,11 +8,11 @@ Public Class clsLichess : Inherits clsProcessing
     Const cURLParam As String = "?perfType=bullet,blitz,rapid,classical,correspondence&clocks=true&evals=true&sort=dateAsc"
 
     Friend Sub DownloadGames(objm_Parameters As _clsParameters)
-        Dim objl_Users As Dictionary(Of Long, _clsUser) = CreateUserList(cSite, objm_Parameters)
-        Dim apiKey As String = objg_Config.getConfig("Lichess_APIToken")
-        Dim objl_files As New List(Of String)
+        Dim users As Dictionary(Of Long, _clsUser) = CreateUserList(cSite, objm_Parameters)
+        Dim apiKey As String = myConfig.getConfig("Lichess_APIToken")
+        Dim files As New List(Of String)
 
-        For Each u In objl_Users.Values
+        For Each u In users.Values
             Dim URL As String = cURLBase & u.Username & cURLParam
             Dim fileName As String = $"{u.Username}_{Date.Now.ToString("yyyyMMddHHmmss")}.pgn"  'Username_yyyymmddHHMMSS.pgn
             Dim filePath As String = Path.Combine(outputDir, fileName)
@@ -24,7 +24,7 @@ Public Class clsLichess : Inherits clsProcessing
                 If response.IsSuccessStatusCode Then
                     Dim contentBytes = response.Content.ReadAsByteArrayAsync().Result
                     File.WriteAllBytes(filePath, contentBytes)
-                    objl_files.Add(filePath)
+                    files.Add(filePath)
                 Else
                     MainWindow.ErrorList = AppendText(MainWindow.ErrorList, $"Lichess game download API error: {response.StatusCode}")
                 End If

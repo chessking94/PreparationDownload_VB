@@ -9,11 +9,11 @@ Public Class clsCDC : Inherits clsProcessing
     Const cURLPath As String = "/games/archives"
 
     Friend Sub DownloadGames(objm_Parameters As _clsParameters)
-        Dim objl_Users As Dictionary(Of Long, _clsUser) = CreateUserList(cSite, objm_Parameters)
-        Dim userAgent As String = objg_Config.getConfig("Chess.com_UserAgent")
-        Dim objl_files As New List(Of String)
+        Dim users As Dictionary(Of Long, _clsUser) = CreateUserList(cSite, objm_Parameters)
+        Dim userAgent As String = myConfig.getConfig("Chess.com_UserAgent")
+        Dim files As New List(Of String)
 
-        For Each u In objl_Users.Values
+        For Each u In users.Values
             Dim URL As String = cURLBase & u.Username & cURLPath
             Dim archiveArray As JArray = Nothing
 
@@ -46,7 +46,7 @@ Public Class clsCDC : Inherits clsProcessing
                         If response.IsSuccessStatusCode Then
                             Dim contentBytes = response.Content.ReadAsByteArrayAsync().Result
                             File.WriteAllBytes(filePath, contentBytes)
-                            objl_files.Add(filePath)
+                            files.Add(filePath)
                         Else
                             MainWindow.ErrorList = AppendText(MainWindow.ErrorList, $"Chess.com game download API error: {response.StatusCode}")
                         End If
