@@ -20,6 +20,52 @@ Class MainWindow
 
     Public Shared ErrorList As String  'TODO: Convert this to a proper list
 
+    'Friend Sub UseArguments(pi_args As String())
+    '    Dim objl_args As Dictionary(Of String, String) = Utilities_NetCore.ParseCommandLineArguments(pi_args)
+
+    '    'TODO: set variable defaults
+    '    'FirstName = "Ethan"
+    '    'LastName = "Hunt"
+    '    'Username = ""
+    '    'Site = "All"
+    '    'TimeControl = "All"
+    '    'Color = "Both"
+    '    'StartDate = New Date(2024, 6, 1)
+    '    'EndDate = New Date(2024, 7, 1)
+    '    'Replace username with real name = True
+    '    'Write log record = True
+
+    '    For Each kvp As KeyValuePair(Of String, String) In objl_args
+    '        MessageBox.Show($"Key: {kvp.Key}, Value: {kvp.Value}")
+    '        Select Case kvp.Key.ToLower
+    '            Case "-f", "--first"
+    '                FirstName = kvp.Value.Trim
+    '            Case "-l", "--last"
+    '                LastName = kvp.Value.Trim
+    '            Case "-u", "--user"
+    '                Username = kvp.Value.Trim
+    '            Case "-s", "--site"
+    '                Site = kvp.Value.Trim
+    '            Case "-t", "--time"
+    '                TimeControl = kvp.Value.Trim
+    '            Case "-c", "--color"
+    '                Color = kvp.Value.Trim
+    '            Case "--startdate"
+    '                'TODO: how can I parse/validate the strings and turn them into proper dates?
+    '            Case "--enddate"
+
+    '            Case "--log"
+    '                If kvp.Value.Trim = "1" Then WriteLog = True  'return true if 1, false for anything else
+    '            Case Else
+    '                Throw New Exception($"Invalid positional argument '{kvp.Key}'")
+    '        End Select
+    '    Next
+
+    '    'TODO: validate variable values
+
+    '    'TODO: run the process
+    'End Sub
+
     Private Sub FirstLastChanged() Handles inp_FirstName.SelectionChanged, inp_LastName.SelectionChanged
         If inp_FirstName.Text <> "" OrElse inp_LastName.Text <> "" Then
             inp_Username.IsEnabled = False
@@ -72,12 +118,12 @@ Class MainWindow
                 StartDate = New Date(2024, 6, 1)
                 EndDate = New Date(2024, 7, 1)
 #Else
-            'validate inputs
-            ValidateName()
-            ValidateSite()
-            ValidateTimeControl()
-            ValidateColor()
-            ValidateDates()
+                'validate inputs
+                ValidateName()
+                ValidateSite()
+                ValidateTimeControl()
+                ValidateColor()
+                ValidateDates()
 #End If
 
                 If Not IsValidated Then

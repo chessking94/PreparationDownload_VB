@@ -17,6 +17,7 @@ Module modPublic
 
         'do the fun part now
         Dim objl_process As New clsProcessing
+        objl_process.initializeConfig()
         If MainWindow.Site = "All" OrElse MainWindow.Site = "Chess.com" Then
             objl_process.CDC = New clsCDC
         End If
