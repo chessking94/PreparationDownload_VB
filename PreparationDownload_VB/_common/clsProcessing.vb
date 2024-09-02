@@ -61,7 +61,7 @@ Public Class clsProcessing : Inherits clsBase
         Dim outPath As String = rootDir
 
         Dim command As New Data.SqlClient.SqlCommand With {
-            .Connection = Connection(strv_Application:=Assembly.GetCallingAssembly().GetName().Name),
+            .Connection = Connection(pi_Application:=Assembly.GetCallingAssembly().GetName().Name),
             .CommandType = Data.CommandType.Text
         }
 
@@ -375,7 +375,7 @@ Public Class clsProcessing : Inherits clsBase
     End Function
 
     Friend Function CreateUserList(pi_Site As String, ByRef pi_Parameters As _clsParameters)
-        Dim command As New Data.SqlClient.SqlCommand With {.Connection = Connection(strv_Application:=Assembly.GetCallingAssembly().GetName().Name)}
+        Dim command As New Data.SqlClient.SqlCommand With {.Connection = Connection(pi_Application:=Assembly.GetCallingAssembly().GetName().Name)}
 
         If pi_Parameters.GetUsername Then
             command.CommandText = clsSqlQueries.FirstLast()

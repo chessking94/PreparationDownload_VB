@@ -66,6 +66,17 @@ Class MainWindow
     '    'TODO: run the process
     'End Sub
 
+    Private Sub WindowLoaded() Handles Me.Loaded
+        Dim list_Sites As New List(Of String) From {"Chess.com", "Lichess", "All"}
+        sel_Site.ItemsSource = list_Sites
+
+        Dim list_timeControls As New List(Of String) From {"Bullet", "Blitz", "Rapid", "Classical", "Correspondence", "All"}
+        sel_TimeControl.ItemsSource = list_timeControls
+
+        Dim list_Colors As New List(Of String) From {"White", "Black", "Both"}
+        sel_Color.ItemsSource = list_Colors
+    End Sub
+
     Private Sub FirstLastChanged() Handles inp_FirstName.SelectionChanged, inp_LastName.SelectionChanged
         If inp_FirstName.Text <> "" OrElse inp_LastName.Text <> "" Then
             inp_Username.IsEnabled = False
@@ -84,7 +95,7 @@ Class MainWindow
         End If
     End Sub
 
-    Private Sub ReplaceUsername_Checked(sender As Object, e As RoutedEventArgs)
+    Private Sub ReplaceUsername_Checked(sender As Object, e As RoutedEventArgs) Handles chk_ReplaceUsername.Checked
         If chk_ReplaceUsername.IsChecked Then
             ReplaceUsername = True
         Else
@@ -92,7 +103,7 @@ Class MainWindow
         End If
     End Sub
 
-    Private Sub WriteLog_Checked(sender As Object, e As RoutedEventArgs)
+    Private Sub WriteLog_Checked(sender As Object, e As RoutedEventArgs) Handles chk_WriteLog.Checked
         If chk_WriteLog.IsChecked Then
             WriteLog = True
         Else

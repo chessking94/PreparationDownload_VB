@@ -7,43 +7,67 @@
         xmlns:VisualBasic="clr-namespace:Microsoft.VisualBasic;assembly=Microsoft.VisualBasic.Core" x:Class="MainWindow"
         mc:Ignorable="d"
         Title="Preparation Downloader" Height="450" Width="450">
-    <Grid Margin="0,0,0,20">
-        <Label Content="First Name" HorizontalAlignment="Left" Margin="112,13,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="inp_FirstName" HorizontalAlignment="Left" Margin="227,18,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="FirstLastChanged"/>
-        <Label Content="Last Name" HorizontalAlignment="Left" Margin="112,43,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="inp_LastName" HorizontalAlignment="Left" Margin="227,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="FirstLastChanged"/>
-        <Label Content="Username" HorizontalAlignment="Left" Margin="115,73,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="inp_Username" HorizontalAlignment="Left" Margin="227,78,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="UsernameChanged"/>
-        <Label Content="Site" HorizontalAlignment="Left" Margin="148,103,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="sel_Site" HorizontalAlignment="Left" Margin="227,103,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
-            <ComboBoxItem Content="Chess.com"/>
-            <ComboBoxItem Content="Lichess"/>
-            <ComboBoxItem Content="All"/>
-        </ComboBox>
-        <Label Content="Time Control" HorizontalAlignment="Left" Margin="100,131,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="sel_TimeControl" HorizontalAlignment="Left" Margin="227,133,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
-            <ComboBoxItem Content="Bullet"/>
-            <ComboBoxItem Content="Blitz"/>
-            <ComboBoxItem Content="Rapid"/>
-            <ComboBoxItem Content="Classical"/>
-            <ComboBoxItem Content="Correspondence"/>
-            <ComboBoxItem Content="All"/>
-        </ComboBox>
-        <Label Content="Color" HorizontalAlignment="Left" Margin="141,163,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="sel_Color" HorizontalAlignment="Left" Margin="227,163,0,0" VerticalAlignment="Top" Width="120" IsEditable="True">
-            <ComboBoxItem Content="White"/>
-            <ComboBoxItem Content="Black"/>
-            <ComboBoxItem Content="Both"/>
-        </ComboBox>
-        <Label Content="Start Date" HorizontalAlignment="Left" Margin="117,193,0,0" VerticalAlignment="Top"/>
-        <DatePicker x:Name="inp_StartDate" HorizontalAlignment="Left" Margin="227,193,0,0" VerticalAlignment="Top" SelectedDateFormat="Short" Width="120"/>
-        <Label Content="End Date" HorizontalAlignment="Left" Margin="121,223,0,0" VerticalAlignment="Top"/>
-        <DatePicker x:Name="inp_EndDate" HorizontalAlignment="Left" Margin="227,223,0,0" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="cmd_Run" Content="Download" HorizontalAlignment="Center" Margin="0,334,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="chk_ReplaceUsername" Content="Replace Username with Real Name" HorizontalAlignment="Left" Margin="139,263,0,0" VerticalAlignment="Top" Checked="ReplaceUsername_Checked" IsChecked="True"/>
-        <CheckBox x:Name="chk_WriteLog" Content="Write Log Record" HorizontalAlignment="Left" Margin="139,295,0,0" VerticalAlignment="Top" Checked="WriteLog_Checked"/>
-        <StatusBar x:Name="txt_StatusBar" Margin="0,380,0,-18" Opacity="0.5">
-            <TextBox x:Name="tb_Status" TextWrapping="Wrap" Text="Please enter download parameters" Width="446" HorizontalAlignment="Center" Opacity="0.5"/>
-        </StatusBar>
+    <Grid x:Name="grid_Container" VerticalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="grid_Options" Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Label x:Name="lab_FirstName" Content="First Name" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Label x:Name="lab_LastName" Content="Last Name" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Label x:Name="lab_Username" Content="Username" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Label x:Name="lab_Site" Content="Site" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Label x:Name="lab_TimeControl" Content="Time Control" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Label x:Name="lab_Color" Content="Color" Grid.Row="5" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Label x:Name="lab_StartDate" Content="Start Date" Grid.Row="6" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Label x:Name="lab_EndDate" Content="End Date" Grid.Row="7" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+
+            <TextBox x:Name="inp_FirstName" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+            <TextBox x:Name="inp_LastName" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+            <TextBox x:Name="inp_Username" Grid.Row="2" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+            <ComboBox x:Name="sel_Site" Grid.Row="3" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+            <ComboBox x:Name="sel_TimeControl" Grid.Row="4" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+            <ComboBox x:Name="sel_Color" Grid.Row="5" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+            <DatePicker x:Name="inp_StartDate" Grid.Row="6" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+            <DatePicker x:Name="inp_EndDate" Grid.Row="7" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Top"/>
+        </Grid>
+
+        <Grid x:Name="grid_Buttons" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" MinHeight="30"/>
+                <RowDefinition Height="Auto" MinHeight="30"/>
+                <RowDefinition Height="*" MinHeight="30"/>
+                <RowDefinition Height="*" MinHeight="30"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <CheckBox x:Name="chk_ReplaceUsername" Content="Replace Username with Real Name" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="True"/>
+            <CheckBox x:Name="chk_WriteLog" Content="Write Log Record" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <Button x:Name="cmd_Run" Content="Download" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+        </Grid>
     </Grid>
 </Window>

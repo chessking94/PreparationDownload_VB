@@ -111,8 +111,8 @@ Module modPublic
     End Function
 
     Public Function Connection(Optional pi_Database As String = "ChessWarehouse", Optional pi_Application As String = "") As System.Data.SqlClient.SqlConnection
-        Dim connection As New System.Data.SqlClient.SqlConnection(ConnectionString(pi_Database, pi_Application))  'TODO: Switch to Microsoft.Data.SqlClient
-        connection.Open()
-        Return connection
+        Dim conn As New System.Data.SqlClient.SqlConnection(ConnectionString(pi_Database, pi_Application))  'TODO: Switch to Microsoft.Data.SqlClient
+        conn.Open()
+        Return conn
     End Function
 End Module
