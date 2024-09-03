@@ -1,4 +1,5 @@
-﻿Imports System.Globalization
+﻿Imports Microsoft.Data.SqlClient
+Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
 Imports System.Text
@@ -49,6 +50,12 @@ Public Class clsProcessing : Inherits clsBase
         If MainWindow.WriteLog Then
             WriteLogEntry(parameters)
         End If
+
+        Try
+            db_Connection.Close()
+        Catch ex As Exception
+
+        End Try
     End Sub
 
     Private Sub WriteLogEntry(ByRef pi_Parameters As _clsParameters)
@@ -60,8 +67,8 @@ Public Class clsProcessing : Inherits clsBase
         Dim endDate As String = If(pi_Parameters.EndDate = Date.MinValue, "", pi_Parameters.EndDate.ToString("yyyy-MM-dd"))
         Dim outPath As String = rootDir
 
-        Dim command As New Data.SqlClient.SqlCommand With {
-            .Connection = Connection(pi_Application:=Assembly.GetCallingAssembly().GetName().Name),
+        Dim command As New SqlCommand With {
+            .Connection = db_Connection,
             .CommandType = Data.CommandType.Text
         }
 
@@ -375,7 +382,7 @@ Public Class clsProcessing : Inherits clsBase
     End Function
 
     Friend Function CreateUserList(pi_Site As String, ByRef pi_Parameters As _clsParameters)
-        Dim command As New Data.SqlClient.SqlCommand With {.Connection = Connection(pi_Application:=Assembly.GetCallingAssembly().GetName().Name)}
+        Dim command As New SqlCommand With {.Connection = db_Connection}
 
         If pi_Parameters.GetUsername Then
             command.CommandText = clsSqlQueries.FirstLast()

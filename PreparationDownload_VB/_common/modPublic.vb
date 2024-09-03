@@ -100,19 +100,4 @@ Module modPublic
             End If
         End If
     End Function
-
-    Public Function ConnectionString(Optional pi_Database As String = "ChessWarehouse", Optional pi_Application As String = "") As String
-        Return _
-            "Server=localhost" &
-            ";Database=" & pi_Database &
-            ";Integrated Security=SSPI" &
-            ";Application Name=" & pi_Application &
-            ";MultipleActiveResultSets=True"
-    End Function
-
-    Public Function Connection(Optional pi_Database As String = "ChessWarehouse", Optional pi_Application As String = "") As System.Data.SqlClient.SqlConnection
-        Dim conn As New System.Data.SqlClient.SqlConnection(ConnectionString(pi_Database, pi_Application))  'TODO: Switch to Microsoft.Data.SqlClient
-        conn.Open()
-        Return conn
-    End Function
 End Module
