@@ -48,7 +48,7 @@ Module modPublic
         End If
 
         If Not String.IsNullOrWhiteSpace(pi_workingDir) Then processInfo.WorkingDirectory = pi_workingDir
-        processInfo.Arguments = " " + If(pi_permanent = True, "/K", "/C") + " " + Command()
+        processInfo.Arguments = " " + If(pi_permanent = True, "/K", "/C") + " " + pi_command
 
         If Not String.IsNullOrWhiteSpace(pi_arguments) Then
             processInfo.Arguments += " "
