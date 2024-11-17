@@ -10,7 +10,7 @@ Public Class clsCDC : Inherits clsProcessing
 
     Friend Sub DownloadGames(objm_Parameters As _clsParameters)
         Dim users As Dictionary(Of Long, _clsUser) = CreateUserList(cSite, objm_Parameters)
-        Dim userAgent As String = myConfig.getConfig("Chess.com_UserAgent")
+        Dim userAgent As String = Environment.GetEnvironmentVariable("CDCUserAgent")
         Dim files As New List(Of String)
 
         For Each u In users.Values

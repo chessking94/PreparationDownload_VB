@@ -9,7 +9,7 @@ Public Class clsLichess : Inherits clsProcessing
 
     Friend Sub DownloadGames(objm_Parameters As _clsParameters)
         Dim users As Dictionary(Of Long, _clsUser) = CreateUserList(cSite, objm_Parameters)
-        Dim apiKey As String = myConfig.getConfig("Lichess_APIToken")
+        Dim apiKey As String = Environment.GetEnvironmentVariable("LichessAPIToken")
         Dim files As New List(Of String)
 
         For Each u In users.Values

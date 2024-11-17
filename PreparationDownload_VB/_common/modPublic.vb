@@ -17,7 +17,6 @@ Module modPublic
 
         'do the fun part now
         Dim processes As New clsProcessing
-        processes.initializeConfig()
         If MainWindow.Site = "All" OrElse MainWindow.Site = "Chess.com" Then
             processes.CDC = New clsCDC
         End If
