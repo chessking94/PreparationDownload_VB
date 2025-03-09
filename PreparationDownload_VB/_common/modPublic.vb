@@ -86,6 +86,7 @@ Module modPublic
         End Using
     End Sub
 
+	'TODO: use same function in Utilities_NetCore instead
     Public Function AppendText(pi_Input As String, pi_Append As String, Optional pi_Delimiter As String = vbCrLf) As String
         If String.IsNullOrWhiteSpace(pi_Input) Then
             Return pi_Append

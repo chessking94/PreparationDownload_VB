@@ -7,12 +7,13 @@
 
         'If e.Args.Length > 0 Then
         '    'arguments, run without interactivity
-        '    mainWindow.UseArguments(e.Args)
+        '    MainWindow.UseArguments(e.Args)
 
         '    'TODO: need to terminate the program at the end, doesn't seem to naturally
+        '    Environment.Exit(0)
         'Else
         '    'no arguments, open the interactive main window
-        '    mainWindow.Show()
+        '    MainWindow.Show()
         'End If
     End Sub
 End Class

@@ -24,42 +24,41 @@ Class MainWindow
     '    Dim args As Dictionary(Of String, String) = Utilities_NetCore.ParseCommandLineArguments(pi_args)
 
     '    'TODO: set variable defaults
-    '    'FirstName = "Ethan"
-    '    'LastName = "Hunt"
-    '    'Username = ""
-    '    'Site = "All"
-    '    'TimeControl = "All"
-    '    'Color = "Both"
-    '    'StartDate = New Date(2024, 6, 1)
-    '    'EndDate = New Date(2024, 7, 1)
-    '    'Replace username with real name = True
-    '    'Write log record = True
+    '    FirstName = "Ethan"
+    '    LastName = "Hunt"
+    '    Username = ""
+    '    Site = "All"
+    '    TimeControl = "All"
+    '    Color = "Both"
+    '    StartDate = New Date(2024, 6, 1)
+    '    EndDate = New Date(2024, 7, 1)
+    '    WriteLog = True
 
-    '    For Each kvp As KeyValuePair(Of String, String) In args
-    '        MessageBox.Show($"Key: {kvp.Key}, Value: {kvp.Value}")
-    '        Select Case kvp.Key.ToLower
-    '            Case "-f", "--first"
-    '                FirstName = kvp.Value.Trim
-    '            Case "-l", "--last"
-    '                LastName = kvp.Value.Trim
-    '            Case "-u", "--user"
-    '                Username = kvp.Value.Trim
-    '            Case "-s", "--site"
-    '                Site = kvp.Value.Trim
-    '            Case "-t", "--time"
-    '                TimeControl = kvp.Value.Trim
-    '            Case "-c", "--color"
-    '                Color = kvp.Value.Trim
-    '            Case "--startdate"
-    '                'TODO: how can I parse/validate the strings and turn them into proper dates?
-    '            Case "--enddate"
+    '    'For Each kvp As KeyValuePair(Of String, String) In args
+    '    '    MessageBox.Show($"Key: {kvp.Key}, Value: {kvp.Value}")
+    '    '    Select Case kvp.Key.ToLower
+    '    '        Case "-f", "--first"
+    '    '            FirstName = kvp.Value.Trim
+    '    '        Case "-l", "--last"
+    '    '            LastName = kvp.Value.Trim
+    '    '        Case "-u", "--user"
+    '    '            Username = kvp.Value.Trim
+    '    '        Case "-s", "--site"
+    '    '            Site = kvp.Value.Trim
+    '    '        Case "-t", "--time"
+    '    '            TimeControl = kvp.Value.Trim
+    '    '        Case "-c", "--color"
+    '    '            Color = kvp.Value.Trim
+    '    '        Case "--startdate"
+    '    '            'TODO: how can I parse/validate the strings and turn them into proper dates?
+    '    '        Case "--enddate"
 
-    '            Case "--log"
-    '                If kvp.Value.Trim = "1" Then WriteLog = True  'return true if 1, false for anything else
-    '            Case Else
-    '                Throw New Exception($"Invalid positional argument '{kvp.Key}'")
-    '        End Select
-    '    Next
+    '    '        Case "--log"
+    '    '            If kvp.Value.Trim = "1" Then WriteLog = True  'return true if 1, false for anything else
+    '    '        Case Else
+    '    '            Throw New Exception($"Invalid positional argument '{kvp.Key}'")
+    '    '    End Select
+    '    'Next
 
     '    'TODO: validate variable values
 
@@ -96,19 +95,11 @@ Class MainWindow
     End Sub
 
     Private Sub ReplaceUsername_Checked(sender As Object, e As RoutedEventArgs) Handles chk_ReplaceUsername.Checked
-        If chk_ReplaceUsername.IsChecked Then
-            ReplaceUsername = True
-        Else
-            ReplaceUsername = False
-        End If
+        ReplaceUsername = If(chk_ReplaceUsername.IsChecked, True, False)
     End Sub
 
     Private Sub WriteLog_Checked(sender As Object, e As RoutedEventArgs) Handles chk_WriteLog.Checked
-        If chk_WriteLog.IsChecked Then
-            WriteLog = True
-        Else
-            WriteLog = False
-        End If
+        WriteLog = If(chk_WriteLog.IsChecked, True, False)
     End Sub
 
     Private Sub Run() Handles cmd_Run.Click
